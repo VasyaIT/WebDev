@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Channels{% endblock %}
+
+{% block main %}
+    {% for channel in channels %}
+        {{ channel.name }}<br>
+        {{ channel.description }}<br>
+        {{ channel.author }}<br>
+        {{ channel.date|date:"d E Y" }}<br>
+        <small>{{ channel.tag }}</small><br>
+        <a href="{% url 'detail_channel' channel.slug %}">Join</a>
+        <hr>
+    {% endfor %}
+    <a href="{% url 'create_channel' %}">Create new channel</a>
+
+{% endblock %}

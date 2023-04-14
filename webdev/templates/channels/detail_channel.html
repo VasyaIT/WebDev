@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ channels.name }}{% endblock %}
+
+{% block main %}
+  {{ channels.name }}<br>
+  {{ channels.description }}<br>
+  {{ channels.author }}<br>
+  {{ channels.date|date:"d E Y" }}<br>
+  <small>{{ channels.tag }}</small><br>
+  <hr>
+{% endblock %}

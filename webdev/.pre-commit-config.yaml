@@ -1,0 +1,6 @@
+repos:
+  - repo: https://github.com/VasyaIT/WebDev
+    rev: v2.4.0
+    hooks:
+      - id: flake8
+        args: [--config, webdev/.flake8]

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Create new channel{% endblock %}
+
+{% block main %}
+<form action="" method="post">
+{% csrf_token %}
+{{ form.name }}<br>
+{{ form.description }}<br>
+{{ form.tag }}<br>
+<button type="submit">Create</button>
+    <br>
+{{ error }}
+{{ slug_error }}
+</form>
+{% endblock %}
