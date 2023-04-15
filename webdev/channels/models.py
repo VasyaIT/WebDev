@@ -12,8 +12,8 @@ class Tag(models.Model):
 
 
 class Channel(models.Model):
-    name = models.CharField(verbose_name='name', max_length=20, help_text='Enter the channel name')
-    slug = models.SlugField(verbose_name='URL', max_length=30, unique=True, db_index=True, help_text='URL', null=False)
+    name = models.CharField(verbose_name='name', max_length=50, help_text='Enter the channel name')
+    slug = models.SlugField(verbose_name='URL', max_length=100, unique=True, db_index=True, help_text='URL', null=False)
     description = models.CharField(
         verbose_name='description',
         max_length=255,

@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'channels',
+    'users',
 
     "debug_toolbar",
 ]
@@ -142,6 +143,8 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:8000',
     'http://localhost:8080',
 ]
+
+LOGIN_REDIRECT_URL = 'index'
 
 INTERNAL_IPS = [
     "127.0.0.1",
