@@ -35,6 +35,8 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(" ")
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -42,10 +44,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'channels',
+    'channels_app',
     'users',
 
-    "debug_toolbar",
+    'debug_toolbar',
+
 ]
 
 MIDDLEWARE = [
@@ -79,7 +82,15 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'webdev.wsgi.application'
-
+ASGI_APPLICATION = 'webdev.asgi.application'
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases

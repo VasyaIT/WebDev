@@ -16,10 +16,12 @@ def index(request):
     return render(request, 'channels/index.html', context)
 
 
+@login_required(login_url='/auth/login/')
 def detail_channel(request, slug):
     channels = Channel.objects.select_related('tag', 'author').get(slug=slug)
     context = {
         'channels': channels,
+        'joined_user': request.user
     }
     return render(request, 'channels/detail_channel.html', context)
 
