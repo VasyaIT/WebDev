@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 
 from .forms import ChannelForm
-from .models import Channel
+from .models import Channel, Message
 from django.template.defaultfilters import slugify
 
 from .utils import pre_channel_save
@@ -19,9 +19,10 @@ def index(request):
 @login_required(login_url='/auth/login/')
 def detail_channel(request, slug):
     channels = Channel.objects.select_related('tag', 'author').get(slug=slug)
+    messages = Message.objects.select_related('channel', 'user').filter(channel=channels).order_by('id')[0:25]
     context = {
         'channels': channels,
-        'joined_user': request.user
+        'messages': messages
     }
     return render(request, 'channels/detail_channel.html', context)
 
@@ -36,6 +37,7 @@ def create_channel(request):
             channel.author = request.user
             channel.slug = slugify(channel.name)
             pre_channel_save(channel)
+            print(channel.slug)
             return redirect('index')
         else:
             error = 'Incorrect form'

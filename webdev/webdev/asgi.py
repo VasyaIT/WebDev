@@ -8,7 +8,7 @@ https://docs.djangoproject.com/en/4.2/howto/deployment/asgi/
 """
 
 import os
-from chat.routing import websocket_urlpatterns as ws_url
+from channels_app.routing import websocket_urlpatterns as ws_url
 
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
