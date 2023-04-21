@@ -8,7 +8,7 @@ class ChannelAdmin(admin.ModelAdmin):
     list_display_links = ('name',)
     search_fields = ('name', 'tag')
     list_editable = ('tag',)
-    # filter_horizontal = ('current_users',)
+    filter_horizontal = ('current_users',)
     empty_value_display = '---'
     prepopulated_fields = {'slug': ('name',)}
 

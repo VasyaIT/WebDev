@@ -30,7 +30,7 @@ class Channel(models.Model):
     )
     author = models.ForeignKey(User, verbose_name='channel author', on_delete=models.CASCADE, related_name='channels')
     date = models.DateTimeField(auto_now_add=True, verbose_name='channel creation date')
-    # current_users = models.ManyToManyField(User, related_name="current_channels", blank=True)
+    current_users = models.ManyToManyField(User, related_name="current_channels", blank=True)
 
     def __str__(self):
         return self.name

@@ -4,111 +4,35 @@
 {% block title %}Channel | {{ channels.slug }}{% endblock %}
 
 {% block main %}
-  <div class="p-10 lg:p-20 text-center">
-      class="text-3xl lg:text-6xl text-white">{{ channels.name }}
-  </div>
+  <div>{{ channels.name }}</div>
 
-  <div class="p-10 lg:p-20 text-center">
-      class="text-3xl lg:text-6xl text-white">{{ channels.description }}
-  </div>
+  <div>{{ channels.description }}</div>
 
-  <div class="p-10 lg:p-20 text-center">
-      class="text-3xl lg:text-6xl text-white">{{ channels.author }}
-  </div>
+  <div>{{ channels.author }}</div>
 
-  <div class="p-10 lg:p-20 text-center">
-      class="text-3xl lg:text-6xl text-white">{{ channels.date|date:"d E Y" }}
-  </div>
+  <div>{{ channels.date|date:"d E Y" }}</div>
 
-  <div class="lg:w-2/4 mx-4 lg:mx-auto p-4 bg-white rounded-xl">
-      <div class="chat-messages space-y-3" id="chat-messages">
-          {% for m in messages %}<b>{{ m.user }}</b>: {{ m.text }}<br><small>{{ m.created_at|date:"d M H: i" }}</small><br>{% endfor %}
+  <div>Online: {{ channel.current_users.count }} users</div>
+
+  <div>
+      <div class="chat-messages" id="chat-messages">
+          {% for m in messages %}<b>{{ m.user }}</b>: {{ m.text }}<br><small>{{ m.created_at|date:"d M H:i" }}</small><br>{% endfor %}
       </div>
   </div>
 
-  <div class="lg:w-2/4 mt-6 mx-4 lg:mx-auto p-4 bg-white rounded-xl">
-      <form method="post" action="." class="flex">
-          <input type="text" name="content" class="flex-1 mr-3" placeholder="Your message..." id="chat-message-input">
+  <div>
+      <form method="post">
+          <input type="text" name="content" placeholder="Your message..." id="chat-message-input">
 
-          <button
-              class="px-5 py-3 rounded-xl text-white bg-teal-600 hover:bg-teal-700"
-              id="chat-message-submit"
-          >Submit</button>
-          <input type="hidden" autofocus>
+          <button id="chat-message-submit">Submit</button>
       </form>
   </div>
-  <div class="lg:w-2/4 mt-6 mx-4 lg:mx-auto p-4 bg-white rounded-xl">
-          <a href="{% url 'index' %}" class="px-5 py-3 rounded-xl text-white bg-teal-600 hover:bg-teal-700">Leave</a>
-  </div>
+  <div><a href="{% url 'index' %}">Leave</a></div>
 {% endblock %}
+
 {% block scripts %}
 {{ channels.slug|json_script:"json-roomname" }}
 {{ request.user.username|json_script:"json-username" }}
 
-<script>
-    const roomName = JSON.parse(document.getElementById('json-roomname').textContent);
-    const userName = JSON.parse(document.getElementById('json-username').textContent);
-    const chatSocket = new WebSocket(
-        'ws://'
-        + window.location.host
-        + '/ws/chat/'
-        + roomName
-        + '/'
-    );
-
-    chatSocket.onclose = function(e) {
-        console.log('onclose')
-    }
-
-    chatSocket.onmessage = function(e) {
-        const data = JSON.parse(e.data);
-
-        if (data.message) {
-            document.querySelector('#chat-messages').innerHTML += ('<b>' + data.username + '</b>: ' + data.message + '<br>');
-        }
-
-        scrollToBottom();
-    };
-
-    document.querySelector('#chat-message-input').focus();
-    document.querySelector('#chat-message-input').onkeyup = function(e) {
-        if (e.keyCode === 13) {
-            document.querySelector('#chat-message-submit').click();
-        }
-    };
-
-    document.querySelector('#chat-message-submit').onclick = function(e) {
-        e.preventDefault()
-
-        const messageInputDom = document.querySelector('#chat-message-input');
-        const message = messageInputDom.value;
-
-        console.log({
-            'message': message,
-            'username': userName,
-            'room': roomName
-        })
-
-        chatSocket.send(JSON.stringify({
-            'message': message,
-            'username': userName,
-            'room': roomName
-        }));
-
-        messageInputDom.value = '';
-
-        return false
-    };
-
-    /**
-    * A function for finding the messages element, and scroll to the bottom of it.
-    */
-    function scrollToBottom() {
-        let objDiv = document.getElementById("chat-messages");
-        objDiv.scrollTop = objDiv.scrollHeight;
-    }
-
-    // Add this below the function to trigger the scroll on load.
-    scrollToBottom();
-</script>
+<script src="{% static 'channels_app/js/chat.js' %}"></script>
 {% endblock %}
