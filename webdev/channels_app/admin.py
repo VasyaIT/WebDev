@@ -4,11 +4,10 @@ from .models import Channel, Tag, Message
 
 @admin.register(Channel)
 class ChannelAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'description', 'author', 'tag', 'slug',)
+    list_display = ('id', 'name', 'description', 'author', 'slug',)
     list_display_links = ('name',)
-    search_fields = ('name', 'tag')
-    list_editable = ('tag',)
-    filter_horizontal = ('current_users',)
+    search_fields = ('name', 'tags')
+    filter_horizontal = ('current_users', 'tags')
     empty_value_display = '---'
     prepopulated_fields = {'slug': ('name',)}
 

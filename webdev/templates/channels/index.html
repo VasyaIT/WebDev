@@ -8,7 +8,7 @@
         {{ channel.description }}<br>
         {{ channel.author }}<br>
         {{ channel.date|date:"d E Y" }}<br>
-        <small>{{ channel.tag }}</small><br>
+        <small>{% for tag in channel.tags.all %}{{ tag }} | {% endfor %}</small><br>
         <h4>Online: {{ channel.current_users.count }} users</h4>
         <a href="{% url 'detail_channel' channel.slug %}">Join</a>
         <hr>

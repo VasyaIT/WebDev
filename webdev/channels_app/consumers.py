@@ -56,17 +56,17 @@ class ChannelConsumer(AsyncWebsocketConsumer):
     @sync_to_async
     def save_message(self, username, room, message):
         user = User.objects.get(username=username)
-        channel = Channel.objects.select_related('tag', 'author').get(slug=room)
+        channel = Channel.objects.select_related('author').get(slug=room)
         if message.strip() == '':
             return
         Message.objects.create(user=user, channel=channel, text=message)
 
     @sync_to_async
     def create_current_user(self, user, room):
-        channels = Channel.objects.select_related('tag', 'author').get(slug=room)
+        channels = Channel.objects.select_related('author').get(slug=room)
         channels.current_users.add(user)
 
     @sync_to_async
     def delete_current_user(self, user, room):
-        channels = Channel.objects.select_related('tag', 'author').get(slug=room)
+        channels = Channel.objects.select_related('author').get(slug=room)
         channels.current_users.remove(user)

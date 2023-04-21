@@ -20,17 +20,20 @@ class Channel(models.Model):
         max_length=255,
         help_text='Enter the channel Description'
     )
-    tag = models.ForeignKey(
+    tags = models.ManyToManyField(
         Tag,
         verbose_name='channel tags',
         help_text='Choose the search tags',
         related_name='channels',
-        on_delete=models.SET_DEFAULT,
-        default='Tags are missing'
     )
     author = models.ForeignKey(User, verbose_name='channel author', on_delete=models.CASCADE, related_name='channels')
     date = models.DateTimeField(auto_now_add=True, verbose_name='channel creation date')
-    current_users = models.ManyToManyField(User, related_name="current_channels", blank=True)
+    current_users = models.ManyToManyField(
+        User,
+        related_name="current_channels",
+        help_text='Select the current channel users',
+        blank=True
+    )
 
     def __str__(self):
         return self.name
@@ -43,4 +46,4 @@ class Message(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Message({self.user} {self.channel})"
+        return self.text

@@ -9,4 +9,4 @@ class ChannelForm(forms.ModelForm):
 
     class Meta:
         model = Channel
-        fields = ('name', 'description', 'tag')
+        fields = ('name', 'description',)

@@ -14,7 +14,7 @@ User = get_user_model()
 
 
 def index(request):
-    channels = Channel.objects.select_related('author', 'tag').prefetch_related('current_users')
+    channels = Channel.objects.select_related('author').prefetch_related('current_users', 'tags')
     context = {
         'channels': channels,
     }
@@ -23,7 +23,7 @@ def index(request):
 
 @login_required(login_url='/auth/login/')
 def detail_channel(request, slug):
-    channels = Channel.objects.select_related('tag', 'author').get(slug=slug)
+    channels = Channel.objects.select_related('author').get(slug=slug)
     messages = Message.objects.select_related('channel', 'user').filter(channel=channels).order_by('id')[0:25]
 
     context = {
