@@ -6,7 +6,8 @@ from .models import Channel
 class ChannelForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Channel name'}))
     description = forms.CharField(widget=forms.Textarea(attrs={'placeholder': 'Channel description'}))
+    tags = forms.SelectMultiple()
 
     class Meta:
         model = Channel
-        fields = ('name', 'description',)
+        fields = ('name', 'description', 'tags',)

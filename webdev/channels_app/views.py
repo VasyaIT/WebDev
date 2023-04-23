@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError
 
 from django.shortcuts import render, redirect
 
@@ -7,14 +8,13 @@ from .forms import ChannelForm
 from .models import Channel, Message
 from django.template.defaultfilters import slugify
 
-from .utils import pre_channel_save
-
+from .utils import save_channel_form
 
 User = get_user_model()
 
 
 def index(request):
-    channels = Channel.objects.select_related('author').prefetch_related('current_users', 'tags')
+    channels = Channel.objects.select_related('author').prefetch_related('current_users', 'tags').order_by('-id')
     context = {
         'channels': channels,
     }
@@ -39,14 +39,11 @@ def create_channel(request):
     form = ChannelForm(request.POST or None)
     if request.method == 'POST':
         if form.is_valid():
-            channel = form.save(commit=False)
-            channel.author = request.user
-            channel.slug = slugify(channel.name)
-            if channel.slug != '':
-                pre_channel_save(channel)
+            try:
+                save_channel_form(form, request)
                 return redirect('index')
-            else:
-                error = 'Such a name is unacceptable'
+            except IntegrityError:
+                error = 'Unknown error. Try again'
         else:
             error = 'Incorrect form'
 
