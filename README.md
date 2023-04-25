@@ -1,2 +1,2 @@
 # WebDev
-This is a huge and multi-functional project
+Social network for communication
