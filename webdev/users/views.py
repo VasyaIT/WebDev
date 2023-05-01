@@ -1,3 +1,5 @@
+from django.contrib.auth.views import PasswordChangeView
+from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.contrib.auth import get_user_model, login
@@ -30,3 +32,11 @@ class SignUp(CreateView):
         user = form.save()
         login(self.request, user)
         return redirect('index')
+
+
+class MyPasswordChangeView(PasswordChangeView):
+    success_url = None
+
+    def form_valid(self, form):
+        messages.success(self.request, "Your password has been successfully changed.")
+        return super().form_valid(form)

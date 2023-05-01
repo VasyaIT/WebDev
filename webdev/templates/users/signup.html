@@ -3,6 +3,7 @@
 {% block title %}Registration{% endblock %}
 
 {% block main %}
+<h1>Registration</h1>
 <form method="post">
     {% csrf_token %}
     {{ form.username }}<br>

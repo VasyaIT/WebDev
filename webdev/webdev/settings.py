@@ -164,7 +164,9 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:8080',
 ]
 
+LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'index'
+LOGOUT_REDIRECT_URL = 'login'
 
 INTERNAL_IPS = [
     "127.0.0.1",

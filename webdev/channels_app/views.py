@@ -6,7 +6,6 @@ from django.shortcuts import render, redirect
 
 from .forms import ChannelForm
 from .models import Channel, Message
-from django.template.defaultfilters import slugify
 
 from .utils import save_channel_form
 
@@ -21,7 +20,7 @@ def index(request):
     return render(request, 'channels/index.html', context)
 
 
-@login_required(login_url='/auth/login/')
+@login_required
 def detail_channel(request, slug):
     channels = Channel.objects.select_related('author').get(slug=slug)
     messages = Message.objects.select_related('channel', 'user').filter(channel=channels).order_by('id')[0:25]
@@ -33,7 +32,7 @@ def detail_channel(request, slug):
     return render(request, 'channels/detail_channel.html', context)
 
 
-@login_required(login_url='/auth/login/')
+@login_required
 def create_channel(request):
     error = ''
     form = ChannelForm(request.POST or None)
