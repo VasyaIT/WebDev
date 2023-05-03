@@ -14,10 +14,11 @@ class ChannelAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name',)
+    list_display = ('id', 'name', 'slug')
     list_display_links = ('name',)
     search_fields = ('name',)
     empty_value_display = '---'
+    prepopulated_fields = {'slug': ('name',)}
 
 
 @admin.register(Message)

@@ -1,19 +1,27 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 
 User = get_user_model()
 
 
 class Tag(models.Model):
-    name = models.CharField(verbose_name='search tags', max_length=15, help_text='Enter the search tags')
+    name = models.CharField(verbose_name='search tags', max_length=30, help_text='Enter the search tags')
+    slug = models.SlugField(verbose_name='URL', max_length=255, unique=True, db_index=True, help_text='URL')
+
+    class Meta:
+        ordering = ['-id']
 
     def __str__(self):
         return self.name
 
+    def get_absolute_url(self):
+        return reverse('detail_tag', args=[self.slug])
+
 
 class Channel(models.Model):
     name = models.CharField(verbose_name='name', max_length=50, help_text='Enter the channel name')
-    slug = models.SlugField(verbose_name='URL', max_length=100, unique=True, db_index=True, help_text='URL', null=False,
+    slug = models.SlugField(verbose_name='URL', max_length=255, unique=True, db_index=True, help_text='URL', null=False,
                             blank=False)
     description = models.CharField(
         verbose_name='description',
@@ -35,8 +43,14 @@ class Channel(models.Model):
         blank=True
     )
 
+    class Meta:
+        ordering = ['-id']
+
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        return reverse('detail_channel', args=[self.slug])
 
 
 class Message(models.Model):

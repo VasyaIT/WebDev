@@ -3,4 +3,4 @@ repos:
     rev: 6.0.0
     hooks:
       - id: flake8
-        args: [--config, webdev/.flake8]
+        args: [--config, .flake8]

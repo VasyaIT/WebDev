@@ -1,18 +1,29 @@
 {% extends 'base.html' %}
 
-{% block title %}Channels{% endblock %}
+{% block title %}
+    {% if tag %}
+        Channels with tag {{ tag }}
+    {% else %}
+        Channels
+    {% endif %}
+{% endblock %}
 
 {% block main %}
+    {% with tag as tag_name %}
+    {% if tag_name %}
+        <h1>Channels with tag {{ tag_name }}</h1>
+    {% endif %}
     {% for channel in channels %}
         {{ channel.name }}<br>
         {{ channel.description }}<br>
         {{ channel.author }}<br>
         {{ channel.date|date:"d E Y" }}<br>
-        <small>{% for tag in channel.tags.all %}{{ tag }} | {% endfor %}</small><br>
+        <small>{% for t in channel.tags.all %}| <a href="{{ t.get_absolute_url }}">{{ t }}</a> | {% endfor %}</small><br>
         <h4>Online: {{ channel.current_users.count }} users</h4>
-        <a href="{% url 'detail_channel' channel.slug %}">Join</a>
+        <a href="{{ channel.get_absolute_url }}">Join</a>
         <hr>
     {% endfor %}
-    <a href="{% url 'create_channel' %}">Create new channel</a>
-
+    <a href="{% url 'create_channel' %}">Create new channel</a><br>
+    {% include 'paginator.html' with page_obj=channels %}
+    {% endwith %}
 {% endblock %}
