@@ -59,5 +59,8 @@ class Message(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="messages")
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-id']
+
     def __str__(self):
         return self.text

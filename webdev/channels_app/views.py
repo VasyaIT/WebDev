@@ -43,7 +43,7 @@ def index(request, tag_slug=None):
 @login_required
 def detail_channel(request, slug):
     channels = get_object_or_404(Channel.objects.select_related('author'), slug=slug)
-    messages = Message.objects.select_related('channel', 'user').filter(channel=channels)[:50]
+    messages = Message.objects.select_related('channel', 'user').filter(channel=channels).order_by('id')[:50]
 
     context = {
         'channels': channels,

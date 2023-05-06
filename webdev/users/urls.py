@@ -24,13 +24,6 @@ urlpatterns = [
         ),
         name='password_change'
     ),
-    # path(
-    #      'password_change/done/',
-    #      view.PasswordChangeDoneView.as_view(
-    #          template_name='users/password_change_done.html'
-    #      ),
-    #      name='password_change_done'
-    #      ),
     path(
         'password_reset/',
         view.PasswordResetView.as_view(

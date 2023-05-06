@@ -1,5 +1,4 @@
 from django.contrib.auth.views import PasswordChangeView
-from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.contrib.auth import get_user_model, login, update_session_auth_hash
@@ -37,17 +36,8 @@ class SignUp(CreateView):
 class MyPasswordChangeView(PasswordChangeView):
     success_url = None
 
-    def get_context_data(self, **kwargs):
-        password_changed = False
-        context = super().get_context_data(**kwargs)
-        context.update(
-            {"title": self.title, "subtitle": None, **(self.extra_context or {}), 'password_changed': password_changed}
-        )
-        return context
-
-    # def form_valid(self, form):
-    #     password_changed = False
-    #     form.save()
-    #     update_session_auth_hash(self.request, form.user)
-    #     password_changed = True
-    #     return super().form_valid(form)
+    def form_valid(self, form):
+        password_changed = True
+        form.save()
+        update_session_auth_hash(self.request, form.user)
+        return render(self.request, 'users/password_change_form.html', {'password_changed': password_changed})
