@@ -8,6 +8,7 @@ User = get_user_model()
 class Tag(models.Model):
     name = models.CharField(verbose_name='search tags', max_length=30, help_text='Enter the search tags')
     slug = models.SlugField(verbose_name='URL', max_length=255, unique=True, db_index=True, help_text='URL')
+    objects = models.Manager()
 
     class Meta:
         ordering = ['-id']
@@ -43,6 +44,8 @@ class Channel(models.Model):
         blank=True
     )
 
+    objects = models.Manager()
+
     class Meta:
         ordering = ['-id']
 
@@ -58,6 +61,8 @@ class Message(models.Model):
     text = models.TextField(max_length=500, null=False, blank=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="messages")
     created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = models.Manager()
 
     class Meta:
         ordering = ['-id']

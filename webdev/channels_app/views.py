@@ -1,6 +1,5 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
-from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank, TrigramSimilarity
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import IntegrityError
 from django.db.models import Q
