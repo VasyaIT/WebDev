@@ -13,6 +13,11 @@
     {% if tag_name %}
         <h1>Channels with tag {{ tag_name }}</h1>
     {% endif %}
+    <form action="" method="get">
+        {{ form.query }}
+        <input type="submit" value="Search">
+    </form>
+    <hr>
     {% for channel in channels %}
         {{ channel.name }}<br>
         {{ channel.description }}<br>
@@ -22,6 +27,8 @@
         <h4>Online: {{ channel.current_users.count }} users</h4>
         <a href="{{ channel.get_absolute_url }}">Join</a>
         <hr>
+    {% empty %}
+        <h2>Nothing was found for your query😕</h2>
     {% endfor %}
     <a href="{% url 'create_channel' %}">Create new channel</a><br>
     {% include 'paginator.html' with page_obj=channels %}

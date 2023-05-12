@@ -9,6 +9,7 @@ exclude =
     */.idea/*,
     */venv/*,
     .env,
+    env,
     */migrations/*,
     venv/,
 max-complexity = 10
