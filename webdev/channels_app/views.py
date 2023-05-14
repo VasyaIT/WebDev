@@ -4,12 +4,12 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import IntegrityError
 from django.db.models import Q
 from django.http import Http404
-
 from django.shortcuts import render, redirect, get_object_or_404
 
 from .forms import ChannelForm, SearchForm
 from .models import Channel, Message, Tag
 from .utils import save_channel_form
+from .filters import ChannelFilter
 
 User = get_user_model()
 
@@ -17,37 +17,27 @@ User = get_user_model()
 def index(request, tag_slug=None):
     channels_list = Channel.objects.select_related('author').prefetch_related('current_users', 'tags')
     form = SearchForm()
+    tags_form = ChannelFilter(request.GET, queryset=channels_list)
     pagination_symbol = '?'
 
-    # if 'query' in request.GET:
-    #     form = SearchForm(request.GET)
-    #     if form.is_valid():
-    #         query = form.cleaned_data['query']
-    #         search_vector = SearchVector('name', 'description', 'tags__name', 'author')
-    #         search_query = SearchQuery(query)
-    #         rank = SearchRank(search_vector, search_query)
-    #         channels_list = channels_list.annotate(search=search_vector, rank=rank)\
-    #             .filter(search=search_query).order_by('-rank')
-
-    # if 'query' in request.GET:
-    #     form = SearchForm(request.GET)
-    #     if form.is_valid():
-    #         query = form.cleaned_data['query']
-    #         similarity = TrigramSimilarity('name', query)
-    #         print(similarity)
-    #         channels_list = channels_list.annotate(similarity=similarity)\
-    #             .filter(similarity__gt=0.1).order_by('-similarity')
-
-    if 'query' in request.GET:
+    if 'query' in request.GET or 'tags' in request.GET:
         form = SearchForm(request.GET)
-        pagination_symbol = f'?query={request.GET["query"]}&'
+        pagination_symbol = f'?{request.GET.urlencode()}&'
+
+        if 'page' in pagination_symbol:
+            pagination_symbol = pagination_symbol.split('page')[0]
+
         if form.is_valid():
             query = form.cleaned_data['query']
             result = (Q
                       (name__icontains=query) | Q(tags__name__icontains=query) | Q
                       (author__username__icontains=query) | Q(description__icontains=query)
                       )
-            channels_list = channels_list.filter(result).distinct()
+            tags_queryset = tags_form.qs
+            channels_queryset = channels_list.filter(result).distinct()
+            channels_list = tags_queryset.filter(result).distinct()
+            if len(channels_list) == 0:
+                channels_list = channels_queryset
 
     tag = None
     if tag_slug:
@@ -70,6 +60,7 @@ def index(request, tag_slug=None):
         'tag': tag,
         'form': form,
         'ps': pagination_symbol,
+        't_f': tags_form,
     }
     return render(request, 'channels/index.html', context)
 

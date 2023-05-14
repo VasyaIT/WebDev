@@ -14,4 +14,7 @@ class ChannelForm(forms.ModelForm):
 
 
 class SearchForm(forms.Form):
-    query = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Enter the name, tags, author'}))
+    query = forms.CharField(
+            widget=forms.TextInput(attrs={'placeholder': 'Enter the name, tags, author'}),
+            required=False
+    )

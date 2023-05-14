@@ -14,4 +14,4 @@ exclude =
     venv/,
 max-complexity = 10
 max-line-length = 120
-ignore = F401
+ignore = F401, E126
