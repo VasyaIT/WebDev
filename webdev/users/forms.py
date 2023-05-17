@@ -15,9 +15,15 @@ class SignUpForm(form.UserCreationForm):
         model = User
         fields = ('username', 'email', 'password1', 'password2')
 
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError('Email already in use')
+        return email
+
 
 class LogInForm(form.AuthenticationForm):
-    username = form.UsernameField(widget=forms.TextInput(attrs={"placeholder": 'Username', 'autofocus': True}))
+    username = form.UsernameField(widget=forms.TextInput(attrs={"placeholder": 'Username or email', 'autofocus': True}))
     password = forms.CharField(strip=False, widget=forms.PasswordInput(attrs={'placeholder': 'Password'}))
 
 
