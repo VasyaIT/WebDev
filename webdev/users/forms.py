@@ -1,7 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model, password_validation
 from django.contrib.auth import forms as form
-from django.contrib.auth import login as auth_login
 
 User = get_user_model()
 
