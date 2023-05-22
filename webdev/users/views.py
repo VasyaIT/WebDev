@@ -1,19 +1,57 @@
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordChangeView, PasswordResetConfirmView, \
         INTERNAL_RESET_SESSION_TOKEN, PasswordResetView
-from django.http import HttpResponseRedirect
-from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.http import HttpResponseRedirect, JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model, login, update_session_auth_hash
 from django.urls import reverse_lazy
 from django.views.decorators import debug, cache, csrf
 from django.utils.decorators import method_decorator
+from django.views.decorators.http import require_POST
 from django.views.generic import CreateView
 from django.core.exceptions import ImproperlyConfigured
 
+from .models import Account, Subscribe
 from .forms import SignUpForm, CustomPasswordChangeForm, CustomPasswordResetForm, \
         CustomSetPasswordForm
 
-
 User = get_user_model()
+
+
+def profile(request, username):
+    """Rendering user profile"""
+    user = get_object_or_404(User.objects.select_related('account'),
+                             username=username,
+                             is_active=True)
+    context = {
+        'user': user,
+    }
+    return render(request, 'users/profile.html', context)
+
+
+@require_POST
+@login_required
+def user_subscribe(request):
+    user_id = request.POST.get('id')
+    action = request.POST.get('action')
+    if user_id and action:
+        if user_id == str(request.user.id):
+            return JsonResponse({'status': 'error'})
+        try:
+            user = User.objects.get(id=user_id)
+            if action == 'subscribe':
+                Subscribe.objects.get_or_create(
+                    user_from=request.user,
+                    user_to=user)
+            else:
+                Subscribe.objects.filter(user_from=request.user,
+                                         user_to=user).delete()
+            return JsonResponse({'status': 'ok'})
+        except User.DoesNotExist:
+            return JsonResponse({'status': 'error'})
+    return JsonResponse({'status': 'error'})
 
 
 class SignUp(CreateView):
@@ -35,7 +73,8 @@ class SignUp(CreateView):
 
     def form_valid(self, form):
         user = form.save()
-        login(self.request, user)
+        Account.objects.create(user=user)
+        login(self.request, user, backend=settings.AUTHENTICATION_BACKENDS[0])
         return redirect('index')
 
 

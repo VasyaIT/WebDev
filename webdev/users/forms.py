@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model, password_validation
 from django.contrib.auth import forms as form
+from django.core.exceptions import ValidationError
 
 User = get_user_model()
 
@@ -20,6 +21,26 @@ class SignUpForm(form.UserCreationForm):
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError('Email already in use')
         return email
+
+    def clean_username(self):
+        """Reject usernames that differ only in case."""
+        username = self.cleaned_data.get("username")
+        if (
+            username
+            and self._meta.model.objects.filter(username__iexact=username).exists()
+            and self._meta.model.objects.filter(email__iexact=username).exists()
+        ):
+            self._update_errors(
+                ValidationError(
+                    {
+                        "username": self.instance.unique_error_message(
+                            self._meta.model, ["username"]
+                        )
+                    }
+                )
+            )
+        else:
+            return username
 
 
 class LogInForm(form.AuthenticationForm):

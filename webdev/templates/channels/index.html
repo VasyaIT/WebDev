@@ -24,7 +24,7 @@
     {% for channel in channels %}
         {{ channel.name }}<br>
         {{ channel.description }}<br>
-        {{ channel.author }}<br>
+        <a href="{{ channel.author.get_absolute_url }}">{{ channel.author }}</a><br>
         {{ channel.date|date:"d E Y" }}<br>
         <small>{% for t in channel.tags.all %}| <a href="{{ t.get_absolute_url }}">{{ t }}</a> | {% endfor %}</small><br>
         <h4>Online: {{ channel.current_users.count }} users</h4>

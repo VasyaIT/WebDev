@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load thumbnail %}
+{% load static %}
+
+{% block title %}{{ user }}{% endblock %}
+
+{% block main %}
+<h1>{{ user }}{% if user.account.is_premium %}🎁{% endif %}</h1>
+  <div class="profile-info">
+    <img src="{% thumbnail user.account.avatar 180x180 %}" class="user-detail">
+  </div>
+  {{ user.account.about }}<br>
+  {% if user.account.rating %}
+    Rating: {{ user.account.rating }}<br>
+  {% else %}
+    <p>Does not have a rating</p>
+  {% endif %}
+  {% with total_subscribers=user.subscribers.count %}
+    <span class="count">
+      <span class="total">{{ total_subscribers }}</span>
+      subscriber{{ total_subscribers|pluralize }}
+    </span>
+  {% with all_subscribers=user.subscribers.all %}
+    <a href="#" data-id="{{ user.id }}" data-action="{% if request.user in all_subscribers %}un{% endif %}subscribe" class="follow button">
+      {% if request.user not in all_subscribers %}
+        subscribe
+      {% else %}
+        Unsubscribe
+      {% endif %}
+    </a>
+  {% endwith %}
+  {% endwith %}
+{% endblock %}
+
+{% block domready %}
+{% include 'users/includes/subscribing.html' %}
+{% endblock %}

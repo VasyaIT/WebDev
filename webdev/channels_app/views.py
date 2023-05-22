@@ -2,13 +2,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import IntegrityError
-from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
 
 from .forms import ChannelForm, SearchForm
 from .models import Channel, Message, Tag
-from .utils import save_channel_form
+from .utils import save_channel_form, get_filtered_channels
 from .filters import ChannelFilter
 
 User = get_user_model()
@@ -28,16 +27,7 @@ def index(request, tag_slug=None):
             pagination_symbol = pagination_symbol.split('page')[0]
 
         if form.is_valid():
-            query = form.cleaned_data['query']
-            result = (Q
-                      (name__icontains=query) | Q(tags__name__icontains=query) | Q
-                      (author__username__icontains=query) | Q(description__icontains=query)
-                      )
-            tags_queryset = tags_form.qs
-            channels_queryset = channels_list.filter(result).distinct()
-            channels_list = tags_queryset.filter(result).distinct()
-            if len(channels_list) == 0:
-                channels_list = channels_queryset
+            channels_list = get_filtered_channels(form, tags_form, channels_list)
 
     tag = None
     if tag_slug:

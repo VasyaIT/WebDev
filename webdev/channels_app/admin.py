@@ -4,7 +4,7 @@ from .models import Channel, Tag, Message
 
 @admin.register(Channel)
 class ChannelAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'description', 'author', 'slug',)
+    list_display = ('id', 'name', 'description', 'author', 'slug')
     list_display_links = ('name',)
     search_fields = ('name', 'tags')
     filter_horizontal = ('current_users', 'tags')

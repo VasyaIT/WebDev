@@ -5,6 +5,7 @@ __pycache__/
 .idea
 __init__.py
 pyrightconfig.json
+media
 
 # C extensions
 *.so

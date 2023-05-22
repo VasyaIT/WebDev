@@ -8,7 +8,7 @@
 
   <div>{{ channels.description }}</div>
 
-  <div>{{ channels.author }}</div>
+  <div><a href="{{ channels.author.get_absolute_url }}">{{ channels.author }}</a></div>
 
   <div>{{ channels.date|date:"d E Y" }}</div>
 
