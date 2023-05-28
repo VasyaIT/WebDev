@@ -48,6 +48,7 @@ class Channel(models.Model):
 
     class Meta:
         ordering = ['-id']
+        indexes = [models.Index(fields=['-date'])]
 
     def __str__(self):
         return self.name
@@ -66,6 +67,7 @@ class Message(models.Model):
 
     class Meta:
         ordering = ['-id']
+        indexes = [models.Index(fields=['-created_at'])]
 
     def __str__(self):
         return self.text

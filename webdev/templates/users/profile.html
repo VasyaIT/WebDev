@@ -20,16 +20,42 @@
       <span class="total">{{ total_subscribers }}</span>
       subscriber{{ total_subscribers|pluralize }}
     </span>
+    {% if request.user != user %}
   {% with all_subscribers=user.subscribers.all %}
-    <a href="#" data-id="{{ user.id }}" data-action="{% if request.user in all_subscribers %}un{% endif %}subscribe" class="follow button">
+    <a href="#" data-id="{{ user.id }}" data-action="{% if request.user in all_subscribers %}Unsubscribe{% else %}Subscribe{% endif %}" class="follow button">
       {% if request.user not in all_subscribers %}
-        subscribe
+        Subscribe
       {% else %}
         Unsubscribe
       {% endif %}
     </a>
   {% endwith %}
+    {% endif %}
   {% endwith %}
+  <br>
+      <span class="total-friends">{{ user_friends_count }}</span> friend{{ user_friends_count|pluralize }}
+    {% if request.user != user %}
+      {% if request.user in user_friends %}
+      <a href="#" data-id="{{ user.id }}" data-action="Remove from Friends" class="friend button">
+        Remove from Friends
+      </a>
+      {% elif request.user in user_friends_req %}
+      <a href="#" data-id="{{ user.id }}" data-action="Cancel the request" class="friend button">
+        Cancel the request
+      </a>
+      {% elif request.user not in user_friends and request.user not in user_friends_req and request.user not in user_friending_req %}
+      <a href="#" data-id="{{ user.id }}" data-action="Add to Friends" class="friend button">
+        Add to Friends
+      </a>
+      {% elif request.user in user_friending_req %}
+      <a href="#" data-id="{{ user.id }}" data-action="Accept the request" class="friend button">
+        Accept the request
+      </a> |
+      <a href="#" data-id="{{ user.id }}" data-action="Reject request" class="rej-button">
+         Reject request
+      </a>
+      {% endif %}
+    {% endif %}
 {% endblock %}
 
 {% block domready %}

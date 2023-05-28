@@ -14,7 +14,8 @@ User = get_user_model()
 
 
 def index(request, tag_slug=None):
-    channels_list = Channel.objects.select_related('author').prefetch_related('current_users', 'tags')
+    channels_list = Channel.objects.select_related('author')\
+        .prefetch_related('current_users', 'tags').order_by('current_users')
     form = SearchForm()
     tags_form = ChannelFilter(request.GET, queryset=channels_list)
     pagination_symbol = '?'

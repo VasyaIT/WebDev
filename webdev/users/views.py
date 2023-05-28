@@ -13,9 +13,10 @@ from django.views.decorators.http import require_POST
 from django.views.generic import CreateView
 from django.core.exceptions import ImproperlyConfigured
 
-from .models import Account, Subscribe
+from .models import Account, Subscribe, Friend
 from .forms import SignUpForm, CustomPasswordChangeForm, CustomPasswordResetForm, \
         CustomSetPasswordForm
+from .utils import user_action
 
 User = get_user_model()
 
@@ -25,29 +26,32 @@ def profile(request, username):
     user = get_object_or_404(User.objects.select_related('account'),
                              username=username,
                              is_active=True)
+    user_friends = [u.user_to for u in user.friending.filter(is_friend=True)]
+    user_friends_count = len(user_friends)
+    user_friends_req = [u.user_from for u in user.friends.filter(is_friend=False)]
+    user_friending_req = [u.user_to for u in user.friending.filter(is_friend=False)]
+
     context = {
         'user': user,
+        'user_friends': user_friends,
+        'user_friends_count': user_friends_count,
+        'user_friends_req': user_friends_req,
+        'user_friending_req': user_friending_req,
     }
     return render(request, 'users/profile.html', context)
 
 
 @require_POST
 @login_required
-def user_subscribe(request):
+def user_contact(request) -> JsonResponse:
+    """Subscribing or Unsubscribing on user"""
     user_id = request.POST.get('id')
     action = request.POST.get('action')
     if user_id and action:
         if user_id == str(request.user.id):
             return JsonResponse({'status': 'error'})
         try:
-            user = User.objects.get(id=user_id)
-            if action == 'subscribe':
-                Subscribe.objects.get_or_create(
-                    user_from=request.user,
-                    user_to=user)
-            else:
-                Subscribe.objects.filter(user_from=request.user,
-                                         user_to=user).delete()
+            user_action(request, user_id, action)
             return JsonResponse({'status': 'ok'})
         except User.DoesNotExist:
             return JsonResponse({'status': 'error'})
@@ -55,6 +59,7 @@ def user_subscribe(request):
 
 
 class SignUp(CreateView):
+    """Register and auto log in. Create an account"""
     redirect_authenticated_user = False
     form_class = SignUpForm
     template_name = 'users/signup.html'
@@ -79,6 +84,7 @@ class SignUp(CreateView):
 
 
 class MyPasswordChangeView(PasswordChangeView):
+    """Password change"""
     success_url = None
     form_class = CustomPasswordChangeForm
     template_name = 'users/password_change_form.html'
@@ -91,6 +97,7 @@ class MyPasswordChangeView(PasswordChangeView):
 
 
 class MyPasswordResetConfirmView(PasswordResetConfirmView):
+    """Set new password"""
     success_url = None
     form_class = CustomSetPasswordForm
     template_name = 'users/password_reset_confirm.html'
@@ -135,6 +142,7 @@ class MyPasswordResetConfirmView(PasswordResetConfirmView):
 
 
 class MyPasswordResetView(PasswordResetView):
+    """Password reset form"""
     form_class = CustomPasswordResetForm
     success_url = None
     template_name = "users/password_reset_form.html"

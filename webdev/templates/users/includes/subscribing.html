@@ -1,4 +1,4 @@
-  const url = '{% url "user_subscribe" %}';
+  const url = '{% url "user_contact" %}';
   var options = {
     method: 'POST',
     headers: {'X-CSRFToken': csrftoken},
@@ -25,14 +25,74 @@
         var previousAction = followButton.dataset.action;
 
         // toggle button text and data-action
-        var action = previousAction === 'subscribe' ? 'unsubscribe' : 'subscribe';
+        var action = previousAction === 'Subscribe' ? 'Unsubscribe' : 'Subscribe';
         followButton.dataset.action = action;
         followButton.innerHTML = action;
 
         // update follower count
         var followerCount = document.querySelector('span.count .total');
         var totalFollowers = parseInt(followerCount.innerHTML);
-        followerCount.innerHTML = previousAction === 'subscribe' ? totalFollowers + 1 : totalFollowers - 1;
+        followerCount.innerHTML = previousAction === 'Subscribe' ? totalFollowers + 1 : totalFollowers - 1;
+      }
+    })
+  });
+
+    document.querySelector('a.friend')
+          .addEventListener('click', function(e){
+    e.preventDefault();
+    var friendButton = this;
+
+    // add request body
+    var formData = new FormData();
+    formData.append('id', friendButton.dataset.id);
+    formData.append('action', friendButton.dataset.action);
+    options['body'] = formData;
+
+    // send HTTP request
+    fetch(url, options)
+    .then(response => response.json())
+    .then(data => {
+      if (data['status'] === 'ok')
+      {
+        var previousAction = friendButton.dataset.action;
+
+        // toggle button text and data-action
+        var action = (previousAction === 'Accept the request') ? (location.reload(), action = 'Accept the request') :
+                     (previousAction === 'Add to Friends') ? 'Cancel the request' : 'Add to Friends';
+        friendButton.dataset.action = action;
+        friendButton.innerHTML = action;
+
+        // update friends count
+        var friendCount = document.querySelector('span.total-friends');
+        var totalFriends = parseInt(friendCount.innerHTML);
+        friendCount.innerHTML = previousAction === 'Remove from Friends' ? totalFriends - 1 : totalFriends + 0;
+      }
+    })
+  });
+
+    document.querySelector('.rej-button')
+          .addEventListener('click', function(e){
+    e.preventDefault();
+    var rejButton = this;
+
+    // add request body
+    var formData = new FormData();
+    formData.append('id', rejButton.dataset.id);
+    formData.append('action', rejButton.dataset.action);
+    options['body'] = formData;
+
+    // send HTTP request
+    fetch(url, options)
+    .then(response => response.json())
+    .then(data => {
+      if (data['status'] === 'ok')
+      {
+        var previousAction = rejButton.dataset.action;
+
+        // toggle button text and data-action
+        var action = previousAction === 'Reject request' ? (location.reload(), action = 'Reject request') : false;
+        rejButton.dataset.action = action;
+        rejButton.innerHTML = action;
       }
     })
   });
