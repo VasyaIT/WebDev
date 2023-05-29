@@ -8,6 +8,7 @@ from .forms import LogInForm
 urlpatterns = [
     path('account/contact/', views.user_contact, name='user_contact'),
     path('account/<username>', views.profile, name='profile'),
+    path('account/edit/', views.profile_edit, name='profile_edit'),
     path('signup/', views.SignUp.as_view(redirect_authenticated_user=True), name='signup'),
     path(
         'login/',

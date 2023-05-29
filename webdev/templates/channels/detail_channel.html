@@ -16,7 +16,7 @@
 
   <div>
       <div class="chat-messages" id="chat-messages">
-          {% for m in messages %}<b>{{ m.user }}</b>: {{ m.text }}<br><small>{{ m.created_at|date:"d M H:i" }}</small><br>{% endfor %}
+          {% for m in mess %}<b>{{ m.user }}</b>: {{ m.text }}<br><small>{{ m.created_at|date:"d M H:i" }}</small><br>{% endfor %}
       </div>
   </div>
 

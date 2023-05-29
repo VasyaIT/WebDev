@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model, password_validation
 from django.contrib.auth import forms as form
 from django.core.exceptions import ValidationError
 
+from users.models import Account
+
 User = get_user_model()
 
 
@@ -83,3 +85,14 @@ class CustomSetPasswordForm(form.SetPasswordForm):
         strip=False,
         widget=forms.PasswordInput(attrs={"autocomplete": "new-password", 'placeholder': 'New password confirmation'}),
     )
+
+
+class AccountEditForm(forms.ModelForm):
+    class Meta:
+        model = Account
+        fields = ['about', 'avatar']
+        widgets = {'avatar': forms.FileInput()}
+        labels = {
+            'about': 'About You',
+            'avatar': 'Your avatar',
+        }

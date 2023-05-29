@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load thumbnail %}
+{% load static %}
+
+{% block title %}Edit | {{ request.user }}{% endblock %}
+
+{% block main %}
+<h1>Edit your account</h1>
+<br>
+    {% if not request.user.account.avatar %}
+        <img src="{% static 'channels_app/img/anonymous.png' %}" width="100" alt="User avatar"><br>
+    {% else %}
+        <img src="{% thumbnail request.user.account.avatar 100x100 %}" alt="User avatar"><br>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" name="action" value="delete_avatar"
+                onclick="return confirm('Delete avatar?')">Delete avatar</button>
+    </form>
+    {% endif %}
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}<br>
+    <input type="submit" value="Edit">
+</form>
+{% endblock %}

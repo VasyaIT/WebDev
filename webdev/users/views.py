@@ -15,7 +15,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 from .models import Account, Subscribe, Friend
 from .forms import SignUpForm, CustomPasswordChangeForm, CustomPasswordResetForm, \
-        CustomSetPasswordForm
+    CustomSetPasswordForm, AccountEditForm
 from .utils import user_action
 
 User = get_user_model()
@@ -39,6 +39,25 @@ def profile(request, username):
         'user_friending_req': user_friending_req,
     }
     return render(request, 'users/profile.html', context)
+
+
+@login_required
+def profile_edit(request):
+    """Editing the user profile"""
+    if request.method == 'POST':
+        form = AccountEditForm(instance=request.user.account,
+                               data=request.POST,
+                               files=request.FILES)
+        if request.POST.get('action') == 'delete_avatar':
+            acc = form.save(commit=False)
+            acc.avatar = None
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully')
+            # print(form.cleaned_data)
+    else:
+        form = AccountEditForm(instance=request.user.account)
+    return render(request, 'users/profile_edit.html', {'form': form})
 
 
 @require_POST

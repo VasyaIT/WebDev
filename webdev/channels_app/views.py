@@ -14,6 +14,7 @@ User = get_user_model()
 
 
 def index(request, tag_slug=None):
+    """Channel list with search"""
     channels_list = Channel.objects.select_related('author')\
         .prefetch_related('current_users', 'tags').order_by('current_users')
     form = SearchForm()
@@ -58,18 +59,20 @@ def index(request, tag_slug=None):
 
 @login_required
 def detail_channel(request, slug):
+    """Channel with communication. Connect to WebSocket"""
     channels = get_object_or_404(Channel.objects.select_related('author'), slug=slug)
     messages = Message.objects.select_related('channel', 'user').filter(channel=channels).order_by('id')[:50]
 
     context = {
         'channels': channels,
-        'messages': messages,
+        'mess': messages,
     }
     return render(request, 'channels/detail_channel.html', context)
 
 
 @login_required
 def create_channel(request):
+    """Creating new channel"""
     error = ''
     form = ChannelForm(request.POST or None)
     if request.method == 'POST':

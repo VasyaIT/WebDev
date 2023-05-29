@@ -56,6 +56,11 @@
       </a>
       {% endif %}
     {% endif %}
+<br>
+{% if request.user == user %}
+  <a href="{% url 'profile_edit' %}">Edit profile</a>
+{% endif %}
+
 {% endblock %}
 
 {% block domready %}

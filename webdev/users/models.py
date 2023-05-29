@@ -13,7 +13,7 @@ class Account(models.Model):
     rating = models.FloatField('User rating', help_text='Range from 1 to 5', default=None,
                                blank=True, null=True,
                                validators=[MinValueValidator(1), MaxValueValidator(5)])
-    about = models.CharField('User description', max_length=80, blank=True)
+    about = models.TextField('User description', max_length=255, blank=True)
     avatar = models.ImageField('User avatar', blank=True)
 
     def __str__(self):
