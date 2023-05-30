@@ -4,7 +4,6 @@ from django.contrib.auth.models import User
 class EmailAuthBackend:
     """Authenticate with an email address"""
     def authenticate(self, request, username=None, password=None):
-        print(username)
         try:
             user = User.objects.get(email=username)
             if user.check_password(password):

@@ -1,14 +1,23 @@
 from django.contrib import admin
+from django.utils.safestring import mark_safe
 
 from .models import Account, Subscribe, Friend
 
 
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'avatar', 'about', 'rating', 'is_premium')
-    list_display_links = ('user',)
+    list_display = ('id', 'user', 'avatar_image', 'about', 'rating', 'is_premium')
+    list_display_links = ('user', 'avatar_image')
     search_fields = ('user',)
     empty_value_display = '---'
+
+    def avatar_image(self, obj):
+        if obj.avatar:
+            return mark_safe('<img src="{}" width="30" height="30">'.format(obj.avatar.url))
+        else:
+            return mark_safe('<img src="/static/channels_app/img/anonymous.png" width="30" height="30">')
+
+    avatar_image.short_description = 'avatar'
 
 
 @admin.register(Subscribe)

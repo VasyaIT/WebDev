@@ -6,9 +6,13 @@
 
 {% block main %}
 <h1>{{ user }}{% if user.account.is_premium %}🎁{% endif %}</h1>
+    {% if not request.user.account.avatar %}
+        <img src="{% static 'channels_app/img/anonymous.png' %}" width="100" alt="User avatar"><br>
+    {% else %}
   <div class="profile-info">
     <img src="{% thumbnail user.account.avatar 180x180 %}" class="user-detail">
   </div>
+  {% endif %}
   {{ user.account.about }}<br>
   {% if user.account.rating %}
     Rating: {{ user.account.rating }}<br>
@@ -58,7 +62,8 @@
     {% endif %}
 <br>
 {% if request.user == user %}
-  <a href="{% url 'profile_edit' %}">Edit profile</a>
+  <a href="{% url 'profile_edit' %}">Edit profile</a><br>
+  <a href="{% url 'password_change' %}">Change password</a>
 {% endif %}
 
 {% endblock %}

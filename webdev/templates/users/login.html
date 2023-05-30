@@ -11,11 +11,8 @@
     <button type="submit">Log in</button>
     {{ form.errors }}
 </form>
-     <p>
         <a href="{% url 'password_reset' %}">
      Forgotten your password?
         </a>
-     </p>
-    <br>
     <p><a href="{% url 'signup' %}">Register</a></p>
 {% endblock %}

@@ -12,15 +12,26 @@
     {% else %}
         <img src="{% thumbnail request.user.account.avatar 100x100 %}" alt="User avatar"><br>
 
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit" name="action" value="delete_avatar"
-                onclick="return confirm('Delete avatar?')">Delete avatar</button>
+    <form method="post" class="qwe">
+      {% csrf_token %}
+      <button type="button" class="delete-btn">Delete avatar</button>
+      <div class="modal" style="display: none;">
+        <div class="modal-content">
+          <h2>Delete avatar?</h2>
+          <button class="cancel-btn">Cancel</button>
+          <button type="submit" class="confirm-btn" name="action" value="delete_avatar">Delete</button>
+        </div>
+      </div>
     </form>
     {% endif %}
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}<br>
-    <input type="submit" value="Edit">
-</form>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}<br>
+        <input type="submit" value="Edit">
+    </form>
+{% endblock %}
+
+{% block scripts %}
+<script rel="script" src="{% static 'channels_app/js/modal.js' %}"></script>
 {% endblock %}

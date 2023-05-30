@@ -209,6 +209,32 @@ ABSOLUTE_URL_OVERRIDES = {
     'auth.user': lambda u: reverse_lazy('profile', args=[u.username])
 }
 
+LOGGING = {
+    'version': 1,
+    "disable_existing_loggers": False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'level': 'INFO',
+        },
+        'file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/django.log',
+            'level': 'ERROR',
+            'maxBytes': 10485760,
+            'backupCount': 10,
+            'encoding': 'utf-8',
+            'mode': 'a',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

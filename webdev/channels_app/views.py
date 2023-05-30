@@ -9,6 +9,7 @@ from .forms import ChannelForm, SearchForm
 from .models import Channel, Message, Tag
 from .utils import save_channel_form, get_filtered_channels
 from .filters import ChannelFilter
+from webdev.logger_config import logger
 
 User = get_user_model()
 
@@ -44,7 +45,9 @@ def index(request, tag_slug=None):
         channels = paginator.page(page_number)
     except EmptyPage:
         channels = paginator.page(1)
+        logger.info(f'{request.user} clicked on the empty paginator page')
     except PageNotAnInteger:
+        logger.info(f'{request.user} clicked on the not existing paginator page')
         raise Http404
 
     context = {
@@ -82,8 +85,10 @@ def create_channel(request):
                 return redirect('index')
             except IntegrityError:
                 error = 'Unknown error. Try again'
+                logger.warning(f'{request.user} caught an `Unknown error`')
         else:
             error = 'Incorrect form'
+            logger.warning(f'{request.user} enter the incorrect form')
 
     form = ChannelForm()
     context = {

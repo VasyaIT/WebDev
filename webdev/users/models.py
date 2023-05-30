@@ -4,6 +4,8 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils import timezone
 
+from webdev.logger_config import logger
+
 User = get_user_model()
 
 
@@ -34,6 +36,7 @@ class Subscribe(models.Model):
 
     def clean(self):
         if self.user_from == self.user_to:
+            logger.error(f'{self.user_from} and {self.user_to} identity')
             raise ValidationError('User_from and user_to must be different')
 
 
@@ -58,6 +61,7 @@ class Friend(models.Model):
         tz = timezone.now()
 
         if self.user_from == self.user_to:
+            logger.error(f'{self.user_from} and {self.user_to} identity')
             raise ValidationError('User_from and user_to must be different')
 
         if self.is_friend:

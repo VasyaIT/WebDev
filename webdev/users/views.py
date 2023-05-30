@@ -17,6 +17,7 @@ from .models import Account, Subscribe, Friend
 from .forms import SignUpForm, CustomPasswordChangeForm, CustomPasswordResetForm, \
     CustomSetPasswordForm, AccountEditForm
 from .utils import user_action
+from webdev.logger_config import logger
 
 User = get_user_model()
 
@@ -73,6 +74,7 @@ def user_contact(request) -> JsonResponse:
             user_action(request, user_id, action)
             return JsonResponse({'status': 'ok'})
         except User.DoesNotExist:
+            logger.error('Was received non-existing user in POST request')
             return JsonResponse({'status': 'error'})
     return JsonResponse({'status': 'error'})
 
@@ -99,6 +101,7 @@ class SignUp(CreateView):
         user = form.save()
         Account.objects.create(user=user)
         login(self.request, user, backend=settings.AUTHENTICATION_BACKENDS[0])
+        logger.info(f'{user} registered success')
         return redirect('index')
 
 
@@ -112,7 +115,37 @@ class MyPasswordChangeView(PasswordChangeView):
         form_valid = True
         form.save()
         update_session_auth_hash(self.request, form.user)
+        logger.info(f'{form.user} changed password successfully')
         return render(self.request, 'users/password_change_form.html', {'form_valid': form_valid})
+
+
+class MyPasswordResetView(PasswordResetView):
+    """Password reset form"""
+    form_class = CustomPasswordResetForm
+    success_url = None
+    template_name = "users/password_reset_form.html"
+
+    @method_decorator(csrf.csrf_protect)
+    def dispatch(self, *args, **kwargs):
+        if self.request.user.is_authenticated:
+            return redirect('index')
+        return super().dispatch(*args, **kwargs)
+
+    def form_valid(self, form):
+        form_valid = True
+        opts = {
+            "use_https": self.request.is_secure(),
+            "token_generator": self.token_generator,
+            "from_email": self.from_email,
+            "email_template_name": self.email_template_name,
+            "subject_template_name": self.subject_template_name,
+            "request": self.request,
+            "html_email_template_name": self.html_email_template_name,
+            "extra_email_context": self.extra_email_context,
+        }
+        form.save(**opts)
+        logger.info(f'Some user made a password reset request at email {form.cleaned_data["email"]}')
+        return render(self.request, 'users/password_reset_form.html', {'form_valid': form_valid})
 
 
 class MyPasswordResetConfirmView(PasswordResetConfirmView):
@@ -157,32 +190,5 @@ class MyPasswordResetConfirmView(PasswordResetConfirmView):
         del self.request.session[INTERNAL_RESET_SESSION_TOKEN]
         if self.post_reset_login:
             login(self.request, user, self.post_reset_login_backend)
+        logger.info(f'{user} successfully reset the password')
         return render(self.request, 'users/password_reset_confirm.html', {'form_valid': form_valid})
-
-
-class MyPasswordResetView(PasswordResetView):
-    """Password reset form"""
-    form_class = CustomPasswordResetForm
-    success_url = None
-    template_name = "users/password_reset_form.html"
-
-    @method_decorator(csrf.csrf_protect)
-    def dispatch(self, *args, **kwargs):
-        if self.request.user.is_authenticated:
-            return redirect('index')
-        return super().dispatch(*args, **kwargs)
-
-    def form_valid(self, form):
-        form_valid = True
-        opts = {
-            "use_https": self.request.is_secure(),
-            "token_generator": self.token_generator,
-            "from_email": self.from_email,
-            "email_template_name": self.email_template_name,
-            "subject_template_name": self.subject_template_name,
-            "request": self.request,
-            "html_email_template_name": self.html_email_template_name,
-            "extra_email_context": self.extra_email_context,
-        }
-        form.save(**opts)
-        return render(self.request, 'users/password_reset_form.html', {'form_valid': form_valid})

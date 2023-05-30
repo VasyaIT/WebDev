@@ -6,6 +6,7 @@ __pycache__/
 __init__.py
 pyrightconfig.json
 media
+logs/
 
 # C extensions
 *.so
