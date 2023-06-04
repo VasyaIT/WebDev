@@ -12,7 +12,7 @@
     {% else %}
         <img src="{% thumbnail request.user.account.avatar 100x100 %}" alt="User avatar"><br>
 
-    <form method="post" class="qwe">
+    <form method="post">
       {% csrf_token %}
       <button type="button" class="delete-btn">Delete avatar</button>
       <div class="modal" style="display: none;">

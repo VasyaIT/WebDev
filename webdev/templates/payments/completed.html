@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}Success | Premium{% endblock %}
+
+{% block main %}
+<h1>Congratulations!</h1>
+
+<p>You got a premium account!</p>
+<p>A successful email was also sent to your email</p>
+<a href="{{ request.user.get_absolute_url }}">Return</a>
+{% endblock %}

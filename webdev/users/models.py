@@ -12,10 +12,10 @@ User = get_user_model()
 class Account(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='account')
     is_premium = models.BooleanField('Premium account', default=False)
-    rating = models.FloatField('User rating', help_text='Range from 1 to 5', default=None,
-                               blank=True, null=True,
-                               validators=[MinValueValidator(1), MaxValueValidator(5)])
-    about = models.TextField('User description', max_length=255, blank=True)
+    rating = models.DecimalField('User rating', help_text='Range from 1 to 5', default=None,
+                                 blank=True, null=True, decimal_places=1, max_digits=2,
+                                 validators=[MinValueValidator(1), MaxValueValidator(5)])
+    about = models.TextField('User description', max_length=255, blank=True, null=True)
     avatar = models.ImageField('User avatar', blank=True)
 
     def __str__(self):

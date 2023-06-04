@@ -55,7 +55,6 @@ def profile_edit(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Profile updated successfully')
-            # print(form.cleaned_data)
     else:
         form = AccountEditForm(instance=request.user.account)
     return render(request, 'users/profile_edit.html', {'form': form})

@@ -20,7 +20,22 @@
             <a href="{% url 'logout' %}">Log out</a> |
             <a href="{{ request.user.get_absolute_url }}">
                 {{ request.user }}
-            </a>
+            </a> |
+            {% if not request.user.account.is_premium %}
+                <a class="activate-premium">Activate premium</a>
+                <div class="modal-premium" style="display: none;">
+                    <div class="modal-content">
+                        <form action="{% url 'payment_process' %}" method="post">
+                            {% csrf_token %}
+                            <button type="button" class="cancel-premium">Cancel</button>
+                            <button type="submit">Pay</button>
+                        </form>
+                    </div>
+                </div>
+                <script rel="script" src="{% static 'channels_app/js/premium.js' %}"></script>
+            {% else %}
+                Premium 🎁
+            {% endif %}
         {% else %}
             <a href="{% url 'login' %}">Log In</a>
             <a href="{% url 'signup' %}">Signup</a>
