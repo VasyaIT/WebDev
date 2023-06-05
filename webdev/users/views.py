@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordChangeView, PasswordResetConfirmView, \
         INTERNAL_RESET_SESSION_TOKEN, PasswordResetView
 from django.contrib import messages
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model, login, update_session_auth_hash
 from django.urls import reverse_lazy
@@ -16,7 +16,7 @@ from django.core.exceptions import ImproperlyConfigured
 from .models import Account, Subscribe, Friend
 from .forms import SignUpForm, CustomPasswordChangeForm, CustomPasswordResetForm, \
     CustomSetPasswordForm, AccountEditForm
-from .utils import user_action
+from .utils import user_action, email_confirm
 from webdev.logger_config import logger
 
 User = get_user_model()
@@ -27,15 +27,19 @@ def profile(request, username):
     user = get_object_or_404(User.objects.select_related('account'),
                              username=username,
                              is_active=True)
-    user_friends = [u.user_to for u in user.friending.filter(is_friend=True)]
-    user_friends_count = len(user_friends)
-    user_friends_req = [u.user_from for u in user.friends.filter(is_friend=False)]
-    user_friending_req = [u.user_to for u in user.friending.filter(is_friend=False)]
+    user_friends = [u.user_to
+                    for u in user.friending.filter(is_friend=True).
+                    select_related('user_from', 'user_to')]
+    user_friends_req = [u.user_from
+                        for u in user.friends.filter(is_friend=False).
+                        select_related('user_from', 'user_to')]
+    user_friending_req = [u.user_to
+                          for u in user.friending.filter(is_friend=False).
+                          select_related('user_from', 'user_to')]
 
     context = {
         'user': user,
         'user_friends': user_friends,
-        'user_friends_count': user_friends_count,
         'user_friends_req': user_friends_req,
         'user_friending_req': user_friending_req,
     }
@@ -97,11 +101,29 @@ class SignUp(CreateView):
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
-        user = form.save()
+        return email_confirm(form, self.request)
+
+
+def signup_confirm(request, token):
+    if token == request.session['INTERNAL_RESET_SESSION_TOKEN']:
+        form = request.session['USER']
+
+        user = User.objects.create_user(
+            username=form['username'],
+            email=form['email'],
+            password=form['password1']
+        )
         Account.objects.create(user=user)
-        login(self.request, user, backend=settings.AUTHENTICATION_BACKENDS[0])
+
+        del request.session['INTERNAL_RESET_SESSION_TOKEN']
+        del request.session['USER']
+
+        login(request, user, backend=settings.AUTHENTICATION_BACKENDS[0])
         logger.info(f'{user} registered success')
-        return redirect('index')
+
+        return render(request, 'users/email_confirm.html')
+    else:
+        return HttpResponse(status=404)
 
 
 class MyPasswordChangeView(PasswordChangeView):
@@ -149,9 +171,11 @@ class MyPasswordResetView(PasswordResetView):
 
 class MyPasswordResetConfirmView(PasswordResetConfirmView):
     """Set new password"""
-    success_url = None
+    success_url = reverse_lazy(settings.LOGIN_REDIRECT_URL)
     form_class = CustomSetPasswordForm
     template_name = 'users/password_reset_confirm.html'
+    post_reset_login = True
+    post_reset_login_backend = settings.AUTHENTICATION_BACKENDS[0]
 
     @method_decorator(debug.sensitive_post_parameters())
     @method_decorator(cache.never_cache)
@@ -182,12 +206,3 @@ class MyPasswordResetConfirmView(PasswordResetConfirmView):
                     return HttpResponseRedirect(redirect_url)
 
         return self.render_to_response(self.get_context_data())
-
-    def form_valid(self, form):
-        form_valid = True
-        user = form.save()
-        del self.request.session[INTERNAL_RESET_SESSION_TOKEN]
-        if self.post_reset_login:
-            login(self.request, user, self.post_reset_login_backend)
-        logger.info(f'{user} successfully reset the password')
-        return render(self.request, 'users/password_reset_confirm.html', {'form_valid': form_valid})
