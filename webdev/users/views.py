@@ -1,3 +1,6 @@
+import base64
+
+import redis
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordChangeView, PasswordResetConfirmView, \
@@ -12,6 +15,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView
 from django.core.exceptions import ImproperlyConfigured
+from django.utils.http import urlsafe_base64_decode
 
 from .models import Account, Subscribe, Friend
 from .forms import SignUpForm, CustomPasswordChangeForm, CustomPasswordResetForm, \
@@ -104,26 +108,33 @@ class SignUp(CreateView):
         return email_confirm(form, self.request)
 
 
-def signup_confirm(request, token):
-    if token == request.session['INTERNAL_RESET_SESSION_TOKEN']:
-        form = request.session['USER']
+def signup_confirm(request, ub64, token):
+    r = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=2)
+    valid = False
 
-        user = User.objects.create_user(
-            username=form['username'],
-            email=form['email'],
-            password=form['password1']
-        )
-        Account.objects.create(user=user)
+    try:
+        ub64 = urlsafe_base64_decode(ub64).decode('utf-8')
+    except (UnicodeDecodeError, ValueError):
+        valid = False
 
-        del request.session['INTERNAL_RESET_SESSION_TOKEN']
-        del request.session['USER']
+    redis_data = r.hgetall(f'token-{ub64}')
+    form_data = {key.decode('utf-8'): value.decode('utf-8') for key, value in redis_data.items()}
+    if form_data:
+        if form_data['token'] == token:
+            user = User.objects.create_user(
+                username=form_data['username'],
+                email=form_data['email'],
+                password=form_data['password1']
+            )
+            Account.objects.create(user=user)
 
-        login(request, user, backend=settings.AUTHENTICATION_BACKENDS[0])
-        logger.info(f'{user} registered success')
+            login(request, user, backend=settings.AUTHENTICATION_BACKENDS[0])
+            logger.info(f'{user} registered success')
+            valid = True
 
-        return render(request, 'users/email_confirm.html')
-    else:
-        return HttpResponse(status=404)
+            r.delete(f'token-{ub64}')
+            r.close()
+    return render(request, 'users/email_confirm.html', {'valid': valid})
 
 
 class MyPasswordChangeView(PasswordChangeView):

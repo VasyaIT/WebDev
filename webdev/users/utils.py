@@ -1,10 +1,15 @@
+import base64
 import hashlib
 import string
 from random import randint, choice
 
+import redis
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.shortcuts import render
 from django.urls import reverse_lazy
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 
 from users.models import Friend, Subscribe
 from .tasks import confirm_email_send
@@ -44,35 +49,49 @@ def user_action(request, user_id, action) -> None:
 
 def email_confirm(form, request):
     """Sending email with confirm token"""
-    user = form.save(commit=False)
+    r = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=2)
 
-    token = generate_token(user)
-    message = generate_email_message(user, request, token)
+    user = form.save(commit=False)
+    form_data = form.cleaned_data
+
+    ub64 = generate_ub64(user)
+    token = generate_token()
+
+    form_data['ub64'] = ub64
+    form_data['token'] = token
+
+    message = generate_email_message(user, request, ub64, token)
 
     confirm_email_send.delay(message, user.email)
 
-    request.session['INTERNAL_RESET_SESSION_TOKEN'] = token
-    request.session['USER'] = form.cleaned_data
+    key = f'token-{user}'
+    r.hmset(key, form_data)
+    r.expire(key, 300)
+    r.close()
     return render(request, 'users/send_confirm_mail.html')
 
 
-def generate_token(user) -> str:
+def generate_ub64(user):
+    ub64 = urlsafe_base64_encode(force_bytes(user.username))
+    return ub64
+
+
+def generate_token() -> str:
     """Generate random token with hash username"""
     random_number = randint(20, 30)
     all_letters = string.ascii_lowercase
-    hsh = hashlib.sha1(user.username.encode())
-    token = f"{''.join(choice(all_letters) for _ in range(random_number))}_{hsh.hexdigest()}"
+    token = ''.join(choice(all_letters) for _ in range(random_number))
     return token
 
 
-def generate_email_message(user, request, token) -> str:
+def generate_email_message(user, request, ub64, token) -> str:
     """Message is composed to be sent to the mail"""
     url = request.build_absolute_uri(reverse_lazy('signup'))
 
     message = f"""
     Dear {user}, Thank You for using our website.
     Email confirmation link:
-    {url}{token}/
+    {url}{ub64}/{token}
     it wasn't you, just ignore this message."""
 
     return message

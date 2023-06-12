@@ -3,6 +3,11 @@
 {% block title %}Email Confirm{% endblock %}
 
 {% block main %}
-    <h1>Email Confirm ✅</h1>
-    <a href="{% url 'index' %}">Let's gooo!</a>
+    {% if valid %}
+        <h1>Email Confirm ✅</h1>
+        <a href="{% url 'index' %}">Let's gooo!</a>
+    {% else %}
+        <p>This link is invalid</p>
+        <a href="{% url 'signup' %}">Registration</a>
+    {% endif %}
 {% endblock %}

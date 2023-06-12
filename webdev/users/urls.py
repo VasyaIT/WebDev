@@ -10,7 +10,7 @@ urlpatterns = [
     path('contact/', views.user_contact, name='user_contact'),
     path('edit/', views.profile_edit, name='profile_edit'),
     path('signup/', views.SignUp.as_view(redirect_authenticated_user=True), name='signup'),
-    path('signup/<token>/', views.signup_confirm, name='signup_confirm'),
+    path('signup/<ub64>/<token>/', views.signup_confirm, name='signup_confirm'),
     path(
         'login/',
         view.LoginView.as_view(
