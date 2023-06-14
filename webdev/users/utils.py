@@ -48,7 +48,7 @@ def user_action(request, user_id, action) -> None:
 
 
 def email_confirm(form, request):
-    """Sending email with confirm token"""
+    """Sending email with confirm token and encode username"""
     r = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=2)
 
     user = form.save(commit=False)
@@ -71,13 +71,14 @@ def email_confirm(form, request):
     return render(request, 'users/send_confirm_mail.html')
 
 
-def generate_ub64(user):
+def generate_ub64(user) -> str:
+    """Encoding username for email link"""
     ub64 = urlsafe_base64_encode(force_bytes(user.username))
     return ub64
 
 
 def generate_token() -> str:
-    """Generate random token with hash username"""
+    """Generate random token for email link"""
     random_number = randint(20, 30)
     all_letters = string.ascii_lowercase
     token = ''.join(choice(all_letters) for _ in range(random_number))

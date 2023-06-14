@@ -68,5 +68,6 @@ class ChannelConsumer(AsyncWebsocketConsumer):
 
     @sync_to_async
     def delete_current_user(self, user, room):
-        channels = Channel.objects.select_related('author').get(slug=room)
-        channels.current_users.remove(user)
+        channels = Channel.objects.select_related('author').filter(slug=room)
+        for channel in channels:
+            channel.current_users.remove(user)

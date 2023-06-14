@@ -111,9 +111,39 @@
     {% empty %}
       <p>You don't have any sent requests</p>
     {% endfor %}
+<hr>
+  {% if have_channel %}
+    <h2>My channel</h2>
+    {% for c in channel %}
+      <p>{{ c.name }}</p>
+      <p>{{ c.description }}</p>
+      <p>{{ c.date|date:"d E Y" }}</p>
+      {% with users_count=c.current_users.count %}
+        <p>Online: {{ users_count }} user{{ users_count|pluralize }}</p>
+      {% endwith %}
+    <a href="{{ channel.get_absolute_url }}">Join</a><br>
+    {% endfor %}
+    <a href="{% url 'edit_channel' %}">Edit channel</a>
+<br>
+    <a class="activate-del_c">Delete channel</a>
+    <div class="modal-del_c" style="display: none;">
+        <form action="{% url 'delete_channel' %}" method="post">
+            {% csrf_token %}
+            <button type="button" class="cancel-del_c">Cancel</button>
+            <button type="submit">Delete</button>
+        </form>
+    </div>
 
+  {% else %}
+    <h2>You don't have a channel</h2>
+    <a href="{% url 'create_channel' %}">Create channel</a>
+  {% endif %}
 {% endif %}
+{% endblock %}
 
+{% block scripts %}
+<script src="{% static 'channels_app/js/chat.js' %}"></script>
+<script src="{% static 'channels_app/js/delete_channel.js' %}"></script>
 {% endblock %}
 
 {% block domready %}

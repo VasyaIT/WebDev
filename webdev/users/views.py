@@ -17,6 +17,7 @@ from django.views.generic import CreateView
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.http import urlsafe_base64_decode
 
+from channels_app.models import Channel
 from .models import Account, Subscribe, Friend
 from .forms import SignUpForm, CustomPasswordChangeForm, CustomPasswordResetForm, \
     CustomSetPasswordForm, AccountEditForm
@@ -41,11 +42,18 @@ def profile(request, username):
                           for u in user.friending.filter(is_friend=False).
                           select_related('user_from', 'user_to')]
 
+    have_channel = False
+    channel = Channel.objects.filter(author=user)
+    if channel.exists():
+        have_channel = True
+
     context = {
         'user': user,
         'user_friends': user_friends,
         'user_friends_req': user_friends_req,
         'user_friending_req': user_friending_req,
+        'channel': channel,
+        'have_channel': have_channel,
     }
     return render(request, 'users/profile.html', context)
 
@@ -54,12 +62,10 @@ def profile(request, username):
 def profile_edit(request):
     """Editing the user profile"""
     if request.method == 'POST':
-        form = AccountEditForm(instance=request.user.account,
-                               data=request.POST,
-                               files=request.FILES)
+        form = AccountEditForm(request.POST, request.FILES, instance=request.user.account)
         if request.POST.get('action') == 'delete_avatar':
-            acc = form.save(commit=False)
-            acc.avatar = None
+            account = form.save(commit=False)
+            account.avatar = None
         if form.is_valid():
             form.save()
             messages.success(request, 'Profile updated successfully')
@@ -98,8 +104,8 @@ class SignUp(CreateView):
             redirect_to = '/'
             if redirect_to == self.request.path:
                 raise ValueError(
-                    "Redirection loop for authenticated user detected. Check that "
-                    "your LOGIN_REDIRECT_URL doesn't point to a login page."
+                    "Redirection loop for signup user detected. Check that "
+                    "`redirect_to` doesn't point to a signup page."
                 )
             return HttpResponseRedirect(redirect_to)
         return super().dispatch(request, *args, **kwargs)
