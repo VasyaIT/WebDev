@@ -27,13 +27,25 @@
         <a href="{{ channel.author.get_absolute_url }}">{{ channel.author }}</a><br>
         {{ channel.date|date:"d E Y" }}<br>
         <small>{% for t in channel.tags.all %}| <a href="{{ t.get_absolute_url }}">{{ t }}</a> | {% endfor %}</small><br>
-        <h4>Online: {{ channel.current_users.count }} users</h4>
+        <h4>
+            {% with users_count=channel.current_users.count %}
+                Online: {{ users_count }} user{{ users_count|pluralize }}
+            {% endwith %}
+        </h4>
         <a href="{{ channel.get_absolute_url }}">Join</a>
         <hr>
     {% empty %}
-        <h2>Nothing was found for your query😕</h2>
+        {% if empty %}
+            <h2>Nothing was found for your query😕</h2>
+        {% else %}
+            <h2>Create the first channel</h2>
+        {% endif %}
     {% endfor %}
-    <a href="{% url 'create_channel' %}">Create new channel</a><br>
+    {% if have_channel %}
+        <a href="{{ request.user.channels.get_absolute_url }}">My channel</a><br>
+    {% else %}
+        <a href="{% url 'create_channel' %}">Create new channel</a><br>
+    {% endif %}
     {% include 'paginator.html' with page_obj=channels %}
     {% endwith %}
 {% endblock %}

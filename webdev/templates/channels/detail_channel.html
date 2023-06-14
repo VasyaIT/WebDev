@@ -12,7 +12,11 @@
 
   <div>{{ channels.date|date:"d E Y" }}</div>
 
-  <div>Online: {{ channels.current_users.count }} users</div>
+  <div>
+      {% with users_count=channel.current_users.count %}
+            Online: {{ users_count }} user{{ users_count|pluralize }}
+      {% endwith %}
+  </div>
 
   <div>
       <div class="chat-messages" id="chat-messages">
@@ -28,11 +32,23 @@
       </form>
   </div>
   <div><a href="{% url 'index' %}">Leave</a></div>
+<br>
+    <a href="{% url 'edit_channel' %}">Edit channel</a>
+<br>
+    <a class="activate-del_c">Delete channel</a>
+    <div class="modal-del_c" style="display: none;">
+        <form action="{% url 'delete_channel' %}" method="post">
+            {% csrf_token %}
+            <button type="button" class="cancel-del_c">Cancel</button>
+            <button type="submit">Delete</button>
+        </form>
+    </div>
+
 {% endblock %}
 
 {% block scripts %}
 {{ channels.slug|json_script:"json-roomname" }}
 {{ request.user.username|json_script:"json-username" }}
-
 <script src="{% static 'channels_app/js/chat.js' %}"></script>
+<script src="{% static 'channels_app/js/delete_channel.js' %}"></script>
 {% endblock %}

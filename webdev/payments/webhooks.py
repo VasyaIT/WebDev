@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
-from payments.tasks import user_save_and_send_mail
+from .tasks import user_save_and_send_mail
 from webdev.logger_config import logger
 
 User = get_user_model()

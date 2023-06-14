@@ -1,9 +1,12 @@
+import base64
+
+import redis
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordChangeView, PasswordResetConfirmView, \
         INTERNAL_RESET_SESSION_TOKEN, PasswordResetView
 from django.contrib import messages
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model, login, update_session_auth_hash
 from django.urls import reverse_lazy
@@ -12,11 +15,13 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView
 from django.core.exceptions import ImproperlyConfigured
+from django.utils.http import urlsafe_base64_decode
 
+from channels_app.models import Channel
 from .models import Account, Subscribe, Friend
 from .forms import SignUpForm, CustomPasswordChangeForm, CustomPasswordResetForm, \
     CustomSetPasswordForm, AccountEditForm
-from .utils import user_action
+from .utils import user_action, email_confirm
 from webdev.logger_config import logger
 
 User = get_user_model()
@@ -27,17 +32,28 @@ def profile(request, username):
     user = get_object_or_404(User.objects.select_related('account'),
                              username=username,
                              is_active=True)
-    user_friends = [u.user_to for u in user.friending.filter(is_friend=True)]
-    user_friends_count = len(user_friends)
-    user_friends_req = [u.user_from for u in user.friends.filter(is_friend=False)]
-    user_friending_req = [u.user_to for u in user.friending.filter(is_friend=False)]
+    user_friends = [u.user_to
+                    for u in user.friending.filter(is_friend=True).
+                    select_related('user_from', 'user_to')]
+    user_friends_req = [u.user_from
+                        for u in user.friends.filter(is_friend=False).
+                        select_related('user_from', 'user_to')]
+    user_friending_req = [u.user_to
+                          for u in user.friending.filter(is_friend=False).
+                          select_related('user_from', 'user_to')]
+
+    have_channel = False
+    channel = Channel.objects.filter(author=user)
+    if channel.exists():
+        have_channel = True
 
     context = {
         'user': user,
         'user_friends': user_friends,
-        'user_friends_count': user_friends_count,
         'user_friends_req': user_friends_req,
         'user_friending_req': user_friending_req,
+        'channel': channel,
+        'have_channel': have_channel,
     }
     return render(request, 'users/profile.html', context)
 
@@ -46,12 +62,10 @@ def profile(request, username):
 def profile_edit(request):
     """Editing the user profile"""
     if request.method == 'POST':
-        form = AccountEditForm(instance=request.user.account,
-                               data=request.POST,
-                               files=request.FILES)
+        form = AccountEditForm(request.POST, request.FILES, instance=request.user.account)
         if request.POST.get('action') == 'delete_avatar':
-            acc = form.save(commit=False)
-            acc.avatar = None
+            account = form.save(commit=False)
+            account.avatar = None
         if form.is_valid():
             form.save()
             messages.success(request, 'Profile updated successfully')
@@ -90,18 +104,43 @@ class SignUp(CreateView):
             redirect_to = '/'
             if redirect_to == self.request.path:
                 raise ValueError(
-                    "Redirection loop for authenticated user detected. Check that "
-                    "your LOGIN_REDIRECT_URL doesn't point to a login page."
+                    "Redirection loop for signup user detected. Check that "
+                    "`redirect_to` doesn't point to a signup page."
                 )
             return HttpResponseRedirect(redirect_to)
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
-        user = form.save()
-        Account.objects.create(user=user)
-        login(self.request, user, backend=settings.AUTHENTICATION_BACKENDS[0])
-        logger.info(f'{user} registered success')
-        return redirect('index')
+        return email_confirm(form, self.request)
+
+
+def signup_confirm(request, ub64, token):
+    r = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=2)
+    valid = False
+
+    try:
+        ub64 = urlsafe_base64_decode(ub64).decode('utf-8')
+    except (UnicodeDecodeError, ValueError):
+        valid = False
+
+    redis_data = r.hgetall(f'token-{ub64}')
+    form_data = {key.decode('utf-8'): value.decode('utf-8') for key, value in redis_data.items()}
+    if form_data:
+        if form_data['token'] == token:
+            user = User.objects.create_user(
+                username=form_data['username'],
+                email=form_data['email'],
+                password=form_data['password1']
+            )
+            Account.objects.create(user=user)
+
+            login(request, user, backend=settings.AUTHENTICATION_BACKENDS[0])
+            logger.info(f'{user} registered success')
+            valid = True
+
+            r.delete(f'token-{ub64}')
+            r.close()
+    return render(request, 'users/email_confirm.html', {'valid': valid})
 
 
 class MyPasswordChangeView(PasswordChangeView):
@@ -149,9 +188,11 @@ class MyPasswordResetView(PasswordResetView):
 
 class MyPasswordResetConfirmView(PasswordResetConfirmView):
     """Set new password"""
-    success_url = None
+    success_url = reverse_lazy(settings.LOGIN_REDIRECT_URL)
     form_class = CustomSetPasswordForm
     template_name = 'users/password_reset_confirm.html'
+    post_reset_login = True
+    post_reset_login_backend = settings.AUTHENTICATION_BACKENDS[0]
 
     @method_decorator(debug.sensitive_post_parameters())
     @method_decorator(cache.never_cache)
@@ -182,12 +223,3 @@ class MyPasswordResetConfirmView(PasswordResetConfirmView):
                     return HttpResponseRedirect(redirect_url)
 
         return self.render_to_response(self.get_context_data())
-
-    def form_valid(self, form):
-        form_valid = True
-        user = form.save()
-        del self.request.session[INTERNAL_RESET_SESSION_TOKEN]
-        if self.post_reset_login:
-            login(self.request, user, self.post_reset_login_backend)
-        logger.info(f'{user} successfully reset the password')
-        return render(self.request, 'users/password_reset_confirm.html', {'form_valid': form_valid})

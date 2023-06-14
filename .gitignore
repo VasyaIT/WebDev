@@ -3,10 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 .idea
-__init__.py
 pyrightconfig.json
-media
+media/
 logs/
+migrations/
 
 # C extensions
 *.so

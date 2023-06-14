@@ -5,8 +5,6 @@ from time import time
 from django.db.models import QuerySet, Q
 from django.utils.text import slugify
 
-from webdev.logger_config import logger
-
 
 def save_channel_form(form, request) -> None:
     """Saving form if it is valid"""
@@ -15,7 +13,6 @@ def save_channel_form(form, request) -> None:
     generate_slug(channel)
     channel.save()
     form.save_m2m()
-    logger.info(f'{request.user} created a new channel')
 
 
 def generate_slug(channel) -> None:

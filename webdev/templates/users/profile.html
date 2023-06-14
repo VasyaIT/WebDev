@@ -26,7 +26,8 @@
     </span>
     {% if request.user != user %}
   {% with all_subscribers=user.subscribers.all %}
-    <a href="#" data-id="{{ user.id }}" data-action="{% if request.user in all_subscribers %}Unsubscribe{% else %}Subscribe{% endif %}" class="follow button">
+    <a href="#" data-id="{{ user.id }}"
+       data-action="{% if request.user in all_subscribers %}Unsubscribe{% else %}Subscribe{% endif %}" class="follow button">
       {% if request.user not in all_subscribers %}
         Subscribe
       {% else %}
@@ -37,7 +38,11 @@
     {% endif %}
   {% endwith %}
   <br>
+    {% with user_friends_count=user_friends|length %}
+      {% if user_friends_count != 0%}
       <span class="total-friends">{{ user_friends_count }}</span> friend{{ user_friends_count|pluralize }}
+      {% endif %}
+    {% endwith %}
     {% if request.user != user %}
       {% if request.user in user_friends %}
       <a href="#" data-id="{{ user.id }}" data-action="Remove from Friends" class="friend button">
@@ -65,7 +70,80 @@
   <a href="{% url 'profile_edit' %}">Edit profile</a><br>
   <a href="{% url 'password_change' %}">Change password</a>
 {% endif %}
+<br>
+<hr>
+<h2>{% if request.user != user %}{{ user }}'s{% else %}Your{% endif %} friends</h2>
+{% for friend in user_friends %}
+  <a href="{{ friend.get_absolute_url }}"><p>{{ friend }}</p></a>
+{% empty %}
+  <p>{% if request.user != user %}{{ user }} has no{% else %}You don't have any{% endif %} friends</p>
+{% endfor %}
 
+{% if request.user == user %}
+<br>
+<hr>
+
+  <h2>Friend Requests</h2>
+    {% with user_friends_req_count=user_friends_req|length %}
+      {% if user_friends_req_count != 0 %}
+      <span class="total-friends">{{ user_friends_req_count }}</span>
+        request{{ user_friends_req_count|pluralize }}
+      {% endif %}
+    {% endwith %}
+
+    {% for friend_req in user_friends_req %}
+      <a href="{{ friend_req.get_absolute_url }}"><p>{{ friend_req }}</p></a>
+    {% empty %}
+      <p>You don't have any friend requests</p>
+    {% endfor %}
+<br>
+<hr>
+  <h2>Sent requests</h2>
+    {% with user_friending_req_count=user_friending_req|length %}
+      {% if user_friending_req_count != 0 %}
+      <span class="total-friends">{{ user_friending_req_count }}</span>
+        request{{ user_friending_req_count|pluralize }} sent
+      {% endif %}
+    {% endwith %}
+
+    {% for friending_req in user_friending_req %}
+      <a href="{{ friending_req.get_absolute_url }}"><p>{{ friending_req }}</p></a>
+    {% empty %}
+      <p>You don't have any sent requests</p>
+    {% endfor %}
+<hr>
+  {% if have_channel %}
+    <h2>My channel</h2>
+    {% for c in channel %}
+      <p>{{ c.name }}</p>
+      <p>{{ c.description }}</p>
+      <p>{{ c.date|date:"d E Y" }}</p>
+      {% with users_count=c.current_users.count %}
+        <p>Online: {{ users_count }} user{{ users_count|pluralize }}</p>
+      {% endwith %}
+    <a href="{{ channel.get_absolute_url }}">Join</a><br>
+    {% endfor %}
+    <a href="{% url 'edit_channel' %}">Edit channel</a>
+<br>
+    <a class="activate-del_c">Delete channel</a>
+    <div class="modal-del_c" style="display: none;">
+        <form action="{% url 'delete_channel' %}" method="post">
+            {% csrf_token %}
+            <button type="button" class="cancel-del_c">Cancel</button>
+            <button type="submit">Delete</button>
+        </form>
+    </div>
+
+  {% else %}
+    <h2>You don't have a channel</h2>
+    <a href="{% url 'create_channel' %}">Create channel</a>
+  {% endif %}
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'channels_app/js/chat.js' %}"></script>
+<script src="{% static 'channels_app/js/delete_channel.js' %}"></script>
 {% endblock %}
 
 {% block domready %}

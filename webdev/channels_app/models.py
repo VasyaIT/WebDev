@@ -6,8 +6,8 @@ User = get_user_model()
 
 
 class Tag(models.Model):
-    name = models.CharField(verbose_name='search tags', max_length=30, help_text='Enter the search tags')
-    slug = models.SlugField(verbose_name='URL', max_length=255, unique=True, db_index=True, help_text='URL')
+    name = models.CharField('search tags', max_length=30, help_text='Enter the search tags')
+    slug = models.SlugField('URL', max_length=255, unique=True, db_index=True, help_text='URL')
 
     class Meta:
         ordering = ['-id']
@@ -21,8 +21,8 @@ class Tag(models.Model):
 
 
 class Channel(models.Model):
-    name = models.CharField(verbose_name='name', max_length=50, help_text='Enter the channel name')
-    slug = models.SlugField(verbose_name='URL', max_length=255, unique=True, db_index=True, help_text='URL', null=False,
+    name = models.CharField('name', max_length=50, help_text='Enter the channel name')
+    slug = models.SlugField('URL', max_length=255, unique=True, db_index=True, help_text='URL', null=False,
                             blank=False)
     description = models.CharField(
         verbose_name='description',
@@ -35,8 +35,12 @@ class Channel(models.Model):
         help_text='Choose the search tags',
         related_name='channels',
     )
-    author = models.ForeignKey(User, verbose_name='channel author', on_delete=models.CASCADE, related_name='channels')
-    date = models.DateTimeField(auto_now_add=True, verbose_name='channel creation date')
+    author = models.OneToOneField(
+        User, verbose_name='channel author',
+        on_delete=models.CASCADE,
+        related_name='channels'
+    )
+    date = models.DateTimeField('channel creation date', auto_now_add=True)
     current_users = models.ManyToManyField(
         User,
         related_name="current_channels",
