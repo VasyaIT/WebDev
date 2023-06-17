@@ -182,7 +182,8 @@ class MyPasswordResetView(PasswordResetView):
             "extra_email_context": self.extra_email_context,
         }
         form.save(**opts)
-        logger.info(f'Some user made a password reset request at email {form.cleaned_data["email"]}')
+        logger.info(f'Some user made a password reset request at email '
+                    f'{form.cleaned_data["email"]}')
         return render(self.request, 'users/password_reset_form.html', {'form_valid': form_valid})
 
 

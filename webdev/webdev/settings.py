@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'django_filters',
     'easy_thumbnails',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -244,6 +245,27 @@ LOGGING = {
             'propagate': True,
         },
     },
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379',
+    },
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 3,
+
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #     'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
+    # ],
 }
 
 # Default primary key field type

@@ -12,8 +12,12 @@ User = get_user_model()
 class SignUpForm(form.UserCreationForm):
     username = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Username'}))
     email = forms.EmailField(widget=forms.EmailInput(attrs={'placeholder': 'Email'}))
-    password1 = forms.CharField(strip=False, widget=forms.PasswordInput(attrs={'placeholder': 'Password'}))
-    password2 = forms.CharField(strip=False, widget=forms.PasswordInput(attrs={'placeholder': 'Password confirm'}))
+    password1 = forms.CharField(strip=False, widget=forms.PasswordInput(attrs={
+                                                                    'placeholder': 'Password'
+                                                                }))
+    password2 = forms.CharField(strip=False, widget=forms.PasswordInput(attrs={
+                                                                'placeholder': 'Password confirm'
+                                                            }))
 
     class Meta:
         model = User
@@ -52,7 +56,8 @@ class SignUpForm(form.UserCreationForm):
         if exist_username.exists():
             logger.info(f'Non-existing user: {username} enter existing username when registering')
         if exist_email.exists():
-            logger.warning(f'Non-existing user: {username} enter existing email in username when registering')
+            logger.warning(f'Non-existing user: {username}'
+                           f' enter existing email in username when registering')
         if '@' in username:
             logger.warning(f'Non-existing user: {username} '
                            f'enter @ in username when registering')
@@ -62,25 +67,33 @@ class SignUpForm(form.UserCreationForm):
 
 
 class LogInForm(form.AuthenticationForm):
-    username = form.UsernameField(widget=forms.TextInput(attrs={"placeholder": 'Username or email', 'autofocus': True}))
-    password = forms.CharField(strip=False, widget=forms.PasswordInput(attrs={'placeholder': 'Password'}))
+    username = form.UsernameField(widget=forms.TextInput(attrs={
+                                                            "placeholder": 'Username or email',
+                                                            'autofocus': True
+                                                        }))
+    password = forms.CharField(strip=False, widget=forms.PasswordInput(attrs={
+                                                                        'placeholder': 'Password'
+                                                                    }))
 
 
 class CustomPasswordChangeForm(form.PasswordChangeForm):
     old_password = forms.CharField(
         strip=False,
         widget=forms.PasswordInput(
-            attrs={"autocomplete": "current-password", "autofocus": True, 'placeholder': 'Old password'}
+            attrs={"autocomplete": "current-password", "autofocus": True,
+                   'placeholder': 'Old password'}
         ),
     )
     new_password1 = forms.CharField(
         strip=False,
-        widget=forms.PasswordInput(attrs={"autocomplete": "new-password", 'placeholder': 'New password'}),
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password",
+                                          'placeholder': 'New password'}),
         help_text=password_validation.password_validators_help_text_html(),
     )
     new_password2 = forms.CharField(
         strip=False,
-        widget=forms.PasswordInput(attrs={"autocomplete": "new-password", 'placeholder': 'Confirm password'}),
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password",
+                                          'placeholder': 'Confirm password'}),
     )
 
 
@@ -93,13 +106,15 @@ class CustomPasswordResetForm(form.PasswordResetForm):
 
 class CustomSetPasswordForm(form.SetPasswordForm):
     new_password1 = forms.CharField(
-        widget=forms.PasswordInput(attrs={"autocomplete": "new-password", 'placeholder': 'New password'}),
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password",
+                                          'placeholder': 'New password'}),
         strip=False,
         help_text=password_validation.password_validators_help_text_html(),
     )
     new_password2 = forms.CharField(
         strip=False,
-        widget=forms.PasswordInput(attrs={"autocomplete": "new-password", 'placeholder': 'New password confirmation'}),
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password",
+                                          'placeholder': 'New password confirmation'}),
     )
 
 

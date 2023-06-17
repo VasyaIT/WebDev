@@ -3,25 +3,28 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import IntegrityError
-from django.forms.models import model_to_dict
 from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
 
+from webdev.logger_config import logger
 from .decorators import have_channel_required
 from .forms import ChannelForm, SearchForm
 from .models import Channel, Message, Tag
 from .utils import save_channel_form, get_filtered_channels
 from .filters import ChannelFilter
-from webdev.logger_config import logger
+
 
 User = get_user_model()
 
 
 def index(request, tag_slug=None):
     """Channel list with search"""
-    channels_list = Channel.objects.select_related('author')\
-        .prefetch_related('current_users', 'tags').order_by('current_users')
+    channels_list = (
+        Channel.online.select_related('author')
+        .prefetch_related('current_users', 'tags')
+        .order_by('-online')
+    )
     form = SearchForm()
     tags_form = ChannelFilter(request.GET, queryset=channels_list)
     pagination_symbol = '?'
@@ -43,10 +46,9 @@ def index(request, tag_slug=None):
     tag = None
     if tag_slug:
         tag = get_object_or_404(Tag, slug=tag_slug)
-        channels_list = channels_list.filter(tags__in=[tag]).select_related('author') \
-            .prefetch_related('tags', 'current_users')
+        channels_list = channels_list.filter(tags__in=[tag])
 
-    if Channel.objects.filter(author=request.user).exists():
+    if request.user.is_authenticated and Channel.objects.filter(author=request.user).exists():
         have_channel = True
 
     paginator = Paginator(channels_list, 3)
@@ -77,7 +79,8 @@ def index(request, tag_slug=None):
 def detail_channel(request, slug):
     """Channel with communication. Connect to WebSocket"""
     channels = get_object_or_404(Channel.objects.select_related('author'), slug=slug)
-    msgs = Message.objects.select_related('channel', 'user').filter(channel=channels).order_by('id')[:1000]
+    msgs = (Message.objects.select_related('channel', 'user')
+            .filter(channel=channels).order_by('id')[:1000])
 
     context = {
         'channels': channels,
@@ -87,7 +90,7 @@ def detail_channel(request, slug):
 
 
 @login_required
-def create_channel(request):
+def create_update_channel(request):
     """Creating or updating the channel"""
     user = request.user
     channel = Channel.objects.filter(author=user)
