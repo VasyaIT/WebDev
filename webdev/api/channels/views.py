@@ -1,12 +1,13 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError
+from django.http import HttpResponse
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from channels_app.models import Channel, Tag
 from .mixins import ListCreateMixin
-from .serializers import ChannelSerializer, ChannelRetrieveSerializer, ChannelUpdateSerializer
+from .serializers import ChannelRetrieveSerializer, ChannelUpdateSerializer
 
 
 class ChannelListAPI(ListCreateMixin, generics.ListAPIView):
@@ -23,7 +24,7 @@ class ChannelListAPI(ListCreateMixin, generics.ListAPIView):
 
 
 class ChannelCreateAPI(ListCreateMixin, LoginRequiredMixin, generics.CreateAPIView):
-    def post(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs) -> HttpResponse:
         channel = Channel.objects.filter(author=request.user)
         if channel.exists():
             return Response({'error': 'You can only have one created channel'})
@@ -43,7 +44,7 @@ class ChannelRetrieveAPI(generics.RetrieveAPIView, LoginRequiredMixin):
 
 
 class ChannelDeleteAPI(APIView, LoginRequiredMixin):
-    def delete(self, request):
+    def delete(self, request) -> HttpResponse:
         channel = Channel.objects.filter(author=request.user)
         if channel.exists():
             instance = channel[0]
@@ -54,7 +55,7 @@ class ChannelDeleteAPI(APIView, LoginRequiredMixin):
 
 
 class ChannelUpdateAPI(APIView, LoginRequiredMixin):
-    def put(self, request):
+    def put(self, request) -> HttpResponse:
         self.channel = Channel.objects.filter(author=request.user)
         if not self.channel.exists():
             return Response(status=status.HTTP_403_FORBIDDEN)
@@ -63,7 +64,7 @@ class ChannelUpdateAPI(APIView, LoginRequiredMixin):
         except IntegrityError:
             return Response({'error': 'Unknown error. Try again'})
 
-    def update(self, request):
+    def update(self, request) -> HttpResponse:
         instance = self.channel[0]
         previous_tags = instance.tags.all()
         serializer = ChannelUpdateSerializer(instance, request.data)
@@ -74,7 +75,9 @@ class ChannelUpdateAPI(APIView, LoginRequiredMixin):
             for tag in new_tags:
                 try:
                     tag_obj = Tag.objects.get(name=tag['name'])
+                    print(tag_obj)
                 except Tag.DoesNotExist:
+                    print('ex')
                     return Response({'error': 'There is no such tag'})
                 new_tags_obj.append(tag_obj)
             instance.tags.set(new_tags_obj)

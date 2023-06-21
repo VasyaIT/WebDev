@@ -268,6 +268,16 @@ REST_FRAMEWORK = {
     # ],
 }
 
+ACTIONS = (
+    'Subscribe',
+    'Unsubscribe',
+    'Add to Friends',
+    'Accept the request',
+    'Remove from Friends',
+    'Cancel the request',
+    'Reject request',
+)
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 

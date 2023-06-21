@@ -1,6 +1,4 @@
-from django.db import IntegrityError
 from rest_framework import serializers
-from rest_framework.response import Response
 
 from channels_app.models import Channel, Tag, Message
 
@@ -30,12 +28,12 @@ class ChannelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Channel
-        exclude = ['id', 'slug', 'current_users']
+        fields = ['name', 'description', 'author', 'date', 'tags', 'online']
 
-    def get_online(self, obj):
+    def get_online(self, obj: Channel) -> int:
         return obj.current_users.count()
 
-    def create(self, validated_data):
+    def create(self, validated_data) -> Channel:
         validated_data['author'] = self.context['request'].user
         tags_data = validated_data.pop('tags')
         channel = Channel.objects.create(**validated_data)
@@ -53,7 +51,7 @@ class ChannelRetrieveSerializer(ChannelSerializer):
 
     class Meta:
         model = Channel
-        exclude = ['id', 'slug', 'current_users']
+        fields = ['name', 'description', 'author', 'date', 'tags', 'online', 'messages']
 
 
 class ChannelUpdateSerializer(ChannelSerializer):
@@ -62,7 +60,7 @@ class ChannelUpdateSerializer(ChannelSerializer):
         model = Channel
         fields = ['name', 'description', 'tags']
 
-    def update(self, instance, validated_data):
+    def update(self, instance, validated_data) -> Channel:
         instance.name = validated_data.get('name', instance.name)
         instance.description = validated_data.get('description', instance.description)
         return instance

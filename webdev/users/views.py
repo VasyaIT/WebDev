@@ -1,5 +1,3 @@
-import base64
-
 import redis
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -27,9 +25,9 @@ from webdev.logger_config import logger
 User = get_user_model()
 
 
-def profile(request, username):
+def profile(request, username: str) -> HttpResponse:
     """Rendering user profile"""
-    user = get_object_or_404(User.objects.select_related('account'),
+    user = get_object_or_404(User.objects.select_related('account', 'channels'),
                              username=username,
                              is_active=True)
     user_friends = [u.user_to
@@ -59,7 +57,7 @@ def profile(request, username):
 
 
 @login_required
-def profile_edit(request):
+def profile_edit(request) -> HttpResponse:
     """Editing the user profile"""
     if request.method == 'POST':
         form = AccountEditForm(request.POST, request.FILES, instance=request.user.account)
@@ -80,15 +78,16 @@ def user_contact(request) -> JsonResponse:
     """Subscribing or Unsubscribing on user"""
     user_id = request.POST.get('id')
     action = request.POST.get('action')
-    if user_id and action:
+    if user_id and action and action in settings.ACTIONS:
         if user_id == str(request.user.id):
             return JsonResponse({'status': 'error'})
         try:
-            user_action(request, user_id, action)
-            return JsonResponse({'status': 'ok'})
+            user = User.objects.get(id=user_id)
         except User.DoesNotExist:
             logger.error('Was received non-existing user in POST request')
             return JsonResponse({'status': 'error'})
+        user_action(request.user, user, action)
+        return JsonResponse({'status': 'ok'})
     return JsonResponse({'status': 'error'})
 
 

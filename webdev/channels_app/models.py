@@ -5,6 +5,7 @@ from django.urls import reverse
 
 from channels_app.utils import generate_slug
 
+
 User = get_user_model()
 
 
