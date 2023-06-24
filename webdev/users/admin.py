@@ -15,7 +15,9 @@ class AccountAdmin(admin.ModelAdmin):
         if obj.avatar:
             return mark_safe('<img src="{}" width="30" height="30">'.format(obj.avatar.url))
         else:
-            return mark_safe('<img src="/static/channels_app/img/anonymous.png" width="30" height="30">')
+            return mark_safe(
+                '<img src="/static/channels_app/img/anonymous.png" width="30" height="30">'
+            )
 
     avatar_image.short_description = 'avatar'
 
@@ -29,6 +31,7 @@ class SubscribeAdmin(admin.ModelAdmin):
 
 @admin.register(Friend)
 class FriendAdmin(admin.ModelAdmin):
-    list_display = ('user_from', 'user_to', 'is_friend', 'created_at_request', 'created_at_friendship')
+    list_display = ('user_from', 'user_to', 'is_friend', 'created_at_request',
+                    'created_at_friendship')
     list_display_links = ('user_from', 'user_to')
     search_fields = ('user_from', 'user_to')

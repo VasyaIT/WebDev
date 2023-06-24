@@ -13,7 +13,7 @@ User = get_user_model()
 
 
 @csrf_exempt
-def stripe_webhook(request):
+def stripe_webhook(request) -> HttpResponse:
     payload = request.body
     event = None
 
@@ -26,5 +26,6 @@ def stripe_webhook(request):
     if event.type == 'checkout.session.completed':
         session = event.data.object
         if session.mode == 'payment' and session.payment_status == 'paid':
-            user_save_and_send_mail.delay(session.customer_details.email, session.client_reference_id)
+            user_save_and_send_mail.delay(session.customer_details.email,
+                                          session.client_reference_id)
     return HttpResponse(status=200)

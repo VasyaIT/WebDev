@@ -3,7 +3,7 @@
 {% block title %}Create new channel{% endblock %}
 
 {% block main %}
-<form action="" method="post">
+<form method="post">
     {% csrf_token %}
     {{ form.name }}<br>
     {{ form.description }}<br>

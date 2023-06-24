@@ -1,8 +1,17 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.db.models import Count
 from django.urls import reverse
 
+from channels_app.utils import generate_slug
+
+
 User = get_user_model()
+
+
+class OnlineManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().annotate(online=Count('current_users'))
 
 
 class Tag(models.Model):
@@ -22,8 +31,8 @@ class Tag(models.Model):
 
 class Channel(models.Model):
     name = models.CharField('name', max_length=50, help_text='Enter the channel name')
-    slug = models.SlugField('URL', max_length=255, unique=True, db_index=True, help_text='URL', null=False,
-                            blank=False)
+    slug = models.SlugField('URL', max_length=255, unique=True, db_index=True, help_text='URL',
+                            null=False, blank=False)
     description = models.CharField(
         verbose_name='description',
         max_length=255,
@@ -48,6 +57,9 @@ class Channel(models.Model):
         blank=True
     )
 
+    objects = models.Manager()
+    online = OnlineManager()
+
     class Meta:
         ordering = ['-id']
         indexes = [models.Index(fields=['-date'])]
@@ -57,6 +69,10 @@ class Channel(models.Model):
 
     def get_absolute_url(self):
         return reverse('detail_channel', args=[self.slug])
+
+    def save(self, *args, **kwargs):
+        self.slug = generate_slug(self.name)
+        return super().save()
 
 
 class Message(models.Model):

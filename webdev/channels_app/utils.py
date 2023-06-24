@@ -10,17 +10,17 @@ def save_channel_form(form, request) -> None:
     """Saving form if it is valid"""
     channel = form.save(commit=False)
     channel.author = request.user
-    generate_slug(channel)
     channel.save()
     form.save_m2m()
 
 
-def generate_slug(channel) -> None:
+def generate_slug(channel_name) -> str:
     """Generating channel slug"""
     random_number = randint(5, 15)
     slug_string = string.ascii_lowercase
     rand_string = ''.join(choice(slug_string) for _ in range(random_number))
-    channel.slug = f'{slugify(channel.name)}-{str(int(time()))}_{rand_string}'
+    channel_slug = f'{slugify(channel_name)}-{str(int(time()))}_{rand_string}'
+    return channel_slug
 
 
 def get_filtered_channels(form, tags_form, channels_list) -> QuerySet:

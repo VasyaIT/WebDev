@@ -2,6 +2,7 @@ import redis
 import stripe
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.views.decorators.http import require_POST
 
@@ -26,7 +27,7 @@ def process(request):
         red = generate_success_redirect_url(user)
         r.set(f'redirect-{user}', red, 600)
         r.close()
-        session = get_session_data(request, red)
+        session = get_session_data(request, red, 'payment_completed', 'index')
         logger.info(f'{user} starts to create a premium account'
                     f' with redirect key: {red}')
         return redirect(session.url, code=303)
