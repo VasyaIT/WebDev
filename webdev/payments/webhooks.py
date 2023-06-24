@@ -13,7 +13,7 @@ User = get_user_model()
 
 
 @csrf_exempt
-def stripe_webhook(request):
+def stripe_webhook(request) -> HttpResponse:
     payload = request.body
     event = None
 

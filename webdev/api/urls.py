@@ -18,5 +18,7 @@ urlpatterns = [
     path('account/edit/', u_views.AccountUpdateAPI.as_view(), name='api_profile_edit'),
     path('account/user/<ub64>/<token>/', u_views.UserSignupConfirmAPI.as_view(),
          name='api_signup_confirm'),
-
+    # Payments
+    path('payments/process/', p_views.Process.as_view(), name='api_process'),
+    path('payments/complete/', p_views.Complete.as_view(), name='api_complete'),
 ]

@@ -29,41 +29,18 @@ class SignUpForm(form.UserCreationForm):
         if User.objects.filter(email=email).exists():
             logger.warning(f'Non-existing user: {self.cleaned_data.get("username")} '
                            f'enter existing email: {email} when registering')
-            raise forms.ValidationError('Email already in use')
+            raise forms.ValidationError({'email': 'Email already in use'})
         return email
 
     def clean_username(self):
-        """
-        Reject usernames that differ only in case.
-        And reject usernames that not differ from exists emails
-        to avoid conflicts when logging in by email.
-        Reject usernames which contains '@'
-        """
-        username = self.cleaned_data.get("username")
-        exist_username = self._meta.model.objects.filter(username__iexact=username)
-        exist_email = self._meta.model.objects.filter(email__iexact=username)
-        if username and (exist_username.exists() or exist_email.exists()):
-            self._update_errors(
-                ValidationError(
-                    {
-                        "username": self.instance.unique_error_message(
-                            self._meta.model, ["username"]
-                        )
-                    }
-                )
-            )
+        """Reject username that contains '@'"""
+        username = self.cleaned_data.get('username')
 
-        if exist_username.exists():
-            logger.info(f'Non-existing user: {username} enter existing username when registering')
-        if exist_email.exists():
-            logger.warning(f'Non-existing user: {username}'
-                           f' enter existing email in username when registering')
         if '@' in username:
             logger.warning(f'Non-existing user: {username} '
                            f'enter @ in username when registering')
             raise ValidationError('Username must not contain @')
-        else:
-            return username
+        return super().clean_username()
 
 
 class LogInForm(form.AuthenticationForm):

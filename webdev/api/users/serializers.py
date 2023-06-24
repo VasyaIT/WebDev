@@ -1,14 +1,11 @@
-from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
-from django.db import IntegrityError, transaction
 from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
-from rest_framework.views import APIView
+from rest_framework.response import Response
 
 from api.users.services import email_confirm
 from users.models import Account, Subscribe
-
+from webdev.logger_config import logger
 
 User = get_user_model()
 
@@ -73,10 +70,23 @@ class AccountUpdateSerializer(serializers.ModelSerializer):
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
-    def create(self, validated_data):
+    def create(self, validated_data) -> User:
         email_confirm(validated_data, self.context.get('request'))
         del validated_data['ub64']
         del validated_data['token']
         user = User.objects.create(**validated_data)
         user.delete()
         return user
+
+    def validate_email(self, attrs) -> str:
+        if User.objects.filter(email=attrs).exists():
+            logger.warning(f'Non-existing user enter existing email: {attrs} when registering')
+            raise serializers.ValidationError({'email': 'Email already in use'})
+        return attrs
+
+    def validate_username(self, attrs) -> str:
+        if '@' in attrs:
+            logger.warning(f'Non-existing user: {attrs} '
+                           f'enter @ in username when registering')
+            raise serializers.ValidationError('Username must not contain @')
+        return attrs
