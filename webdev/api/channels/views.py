@@ -2,6 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError
 from django.http import HttpResponse
 from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -23,7 +24,9 @@ class ChannelListAPI(ListCreateMixin, generics.ListAPIView):
         return super().get(request, *args, **kwargs)
 
 
-class ChannelCreateAPI(ListCreateMixin, LoginRequiredMixin, generics.CreateAPIView):
+class ChannelCreateAPI(ListCreateMixin, generics.CreateAPIView):
+    permission_classes = (IsAuthenticated,)
+
     def post(self, request, *args, **kwargs) -> HttpResponse:
         channel = Channel.objects.filter(author=request.user)
         if channel.exists():
@@ -36,14 +39,17 @@ class ChannelCreateAPI(ListCreateMixin, LoginRequiredMixin, generics.CreateAPIVi
             return Response({'error': 'There is no such tag'})
 
 
-class ChannelRetrieveAPI(generics.RetrieveAPIView, LoginRequiredMixin):
+class ChannelRetrieveAPI(generics.RetrieveAPIView):
     queryset = (Channel.objects.select_related('author')
                 .prefetch_related('current_users', 'tags', 'messages__user'))
     serializer_class = ChannelRetrieveSerializer
     lookup_field = 'slug'
+    permission_classes = (IsAuthenticated,)
 
 
-class ChannelDeleteAPI(APIView, LoginRequiredMixin):
+class ChannelDeleteAPI(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def delete(self, request) -> HttpResponse:
         channel = Channel.objects.filter(author=request.user)
         if channel.exists():
@@ -54,7 +60,9 @@ class ChannelDeleteAPI(APIView, LoginRequiredMixin):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
 
-class ChannelUpdateAPI(APIView, LoginRequiredMixin):
+class ChannelUpdateAPI(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def put(self, request) -> HttpResponse:
         self.channel = Channel.objects.filter(author=request.user)
         if not self.channel.exists():

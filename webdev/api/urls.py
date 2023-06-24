@@ -16,5 +16,7 @@ urlpatterns = [
     path('account/user/<username>/', u_views.UserRetrieveAPI.as_view(), name='api_profile'),
     path('account/contact/', u_views.UserContact.as_view(), name='api_user_contact'),
     path('account/edit/', u_views.AccountUpdateAPI.as_view(), name='api_profile_edit'),
+    path('account/user/<ub64>/<token>/', u_views.UserSignupConfirmAPI.as_view(),
+         name='api_signup_confirm'),
 
 ]

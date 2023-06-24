@@ -110,7 +110,7 @@ class SignUp(CreateView):
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
-        return email_confirm(form, self.request)
+        return email_confirm(form.cleaned_data, self.request)
 
 
 def signup_confirm(request, ub64, token):

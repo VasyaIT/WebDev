@@ -1,6 +1,12 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
+from django.db import IntegrityError, transaction
+from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
+from rest_framework.views import APIView
 
+from api.users.services import email_confirm
 from users.models import Account, Subscribe
 
 
@@ -64,3 +70,13 @@ class AccountUpdateSerializer(serializers.ModelSerializer):
             return instance
         else:
             return super().update(instance, validated_data)
+
+
+class CustomUserCreateSerializer(UserCreateSerializer):
+    def create(self, validated_data):
+        email_confirm(validated_data, self.context.get('request'))
+        del validated_data['ub64']
+        del validated_data['token']
+        user = User.objects.create(**validated_data)
+        user.delete()
+        return user

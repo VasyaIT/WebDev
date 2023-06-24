@@ -1,5 +1,3 @@
-import base64
-import hashlib
 import string
 from random import randint, choice
 
@@ -46,33 +44,30 @@ def user_action(request_user: User, user: User, action: str) -> None:
         qs_rev.delete()
 
 
-def email_confirm(form, request):
+def email_confirm(data: dict[str, ...], request):
     """Sending email with confirm token and encode username"""
     r = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=2)
 
-    user = form.save(commit=False)
-    form_data = form.cleaned_data
-
-    ub64 = generate_ub64(user)
+    ub64 = generate_ub64(data['username'])
     token = generate_token()
 
-    form_data['ub64'] = ub64
-    form_data['token'] = token
+    data['ub64'] = ub64
+    data['token'] = token
 
-    message = generate_email_message(user, request, ub64, token)
+    message = generate_email_message(data['username'], request, ub64, token, 'signup')
 
-    confirm_email_send.delay(message, user.email)
+    confirm_email_send.delay(message, data['email'])
 
-    key = f'token-{user}'
-    r.hmset(key, form_data)
+    key = f'token-{data["username"]}'
+    r.hmset(key, data)
     r.expire(key, 300)
     r.close()
     return render(request, 'users/send_confirm_mail.html')
 
 
-def generate_ub64(user) -> str:
+def generate_ub64(username) -> str:
     """Encoding username for email link"""
-    ub64 = urlsafe_base64_encode(force_bytes(user.username))
+    ub64 = urlsafe_base64_encode(force_bytes(username))
     return ub64
 
 
@@ -84,12 +79,12 @@ def generate_token() -> str:
     return token
 
 
-def generate_email_message(user, request, ub64, token) -> str:
+def generate_email_message(username, request, ub64, token, url_name) -> str:
     """Message is composed to be sent to the mail"""
-    url = request.build_absolute_uri(reverse_lazy('signup'))
+    url = request.build_absolute_uri(reverse_lazy(url_name))
 
     message = f"""
-    Dear {user}, Thank You for using our website.
+    Dear {username}, Thank You for using our website.
     Email confirmation link:
     {url}{ub64}/{token}
     it wasn't you, just ignore this message."""
