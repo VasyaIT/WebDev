@@ -2,7 +2,9 @@ import redis
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
+from django.utils.decorators import method_decorator
 from django.utils.http import urlsafe_base64_decode
+from django.views.decorators.cache import cache_page
 from rest_framework.generics import RetrieveAPIView, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -25,6 +27,7 @@ class UserRetrieveAPI(RetrieveAPIView):
     serializer_class = UserSerializer
     lookup_field = 'username'
 
+    @method_decorator(cache_page(60))
     def retrieve(self, request, *args, **kwargs) -> HttpResponse:
         self.user = kwargs['username']
         self.request_user = request.user.username

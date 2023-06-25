@@ -1,6 +1,7 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError
 from django.http import HttpResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -12,6 +13,8 @@ from .serializers import ChannelRetrieveSerializer, ChannelUpdateSerializer
 
 
 class ChannelListAPI(ListCreateMixin, generics.ListAPIView):
+
+    @method_decorator(cache_page(60))
     def get(self, request, *args, **kwargs):
         tag_slug = kwargs.get('tag_slug')
         if tag_slug:
