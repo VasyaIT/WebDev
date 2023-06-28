@@ -7,23 +7,27 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from channels_app.filters import ChannelFilter
 from channels_app.models import Channel, Tag
+from channels_app.utils import get_filtered_channels
 from .mixins import ListCreateMixin
 from .serializers import ChannelRetrieveSerializer, ChannelUpdateSerializer
 
 
 class ChannelListAPI(ListCreateMixin, generics.ListAPIView):
-
-    @method_decorator(cache_page(60))
+    @method_decorator(cache_page(2))
     def get(self, request, *args, **kwargs):
+        tags_qs = ChannelFilter(request.GET, queryset=Channel.online.select_related('author')).qs
+
+        if 'query' in request.GET or 'tags' in request.GET:
+            self.queryset = get_filtered_channels(
+                request.GET.get('query', ''), tags_qs, self.queryset
+            ).prefetch_related('tags', 'current_users')
+
         tag_slug = kwargs.get('tag_slug')
         if tag_slug:
-            self.queryset = (
-                Channel.online.filter(tags__slug__in=[tag_slug])
-                .select_related('author')
-                .prefetch_related('current_users', 'tags')
-                .order_by('-online')
-            )
+            self.queryset = self.queryset.filter(tags__slug__in=[tag_slug])
+
         return super().get(request, *args, **kwargs)
 
 

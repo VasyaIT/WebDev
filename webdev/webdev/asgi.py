@@ -8,6 +8,7 @@ https://docs.djangoproject.com/en/4.2/howto/deployment/asgi/
 """
 
 import os
+
 from channels_app.routing import websocket_urlpatterns as ws_url
 
 from channels.auth import AuthMiddlewareStack

@@ -22,6 +22,6 @@ app.conf.beat_schedule = {
     # Executes every day at 12:00 a.m.
     'add-every-day-midnight': {
         'task': 'channels_app.tasks.delete_messages',
-        'schedule': crontab(),
+        'schedule': crontab(minute=0, hour=0),
     },
 }
