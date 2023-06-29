@@ -15,10 +15,16 @@ User = get_user_model()
 @csrf_exempt
 def stripe_webhook(request) -> HttpResponse:
     payload = request.body
+    # sig_header = request.META['HTTP_STRIPE_SIGNATURE']
     event = None
 
     try:
         event = stripe.Event.construct_from(json.loads(payload), settings.STRIPE_WEBHOOK_SECRET)
+    # try:
+    #     event = stripe.Webhook.construct_event(
+    #         payload,
+    #         sig_header,
+    #         settings.STRIPE_WEBHOOK_SECRET)
     except ValueError as v:
         logger.error(v)
         return HttpResponse(status=400)

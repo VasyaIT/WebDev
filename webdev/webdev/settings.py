@@ -30,10 +30,25 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 0)
+DEBUG = bool(int(os.getenv("DEBUG", 0)))
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(" ")
 
+CORS_ALLOWED_ORIGINS = [
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
+    'http://localhost',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
+    'http://localhost',
+]
+
+ADMINS = [
+    ('Vasya', os.getenv('EMAIL_HOST_USER')),
+]
 
 # Application definition
 
@@ -92,21 +107,21 @@ WSGI_APPLICATION = 'webdev.wsgi.application'
 ASGI_APPLICATION = 'webdev.asgi.application'
 
 '''Prod'''
-# CHANNEL_LAYERS = {
-#     "default": {
-#         "BACKEND": "channels_redis.core.RedisChannelLayer",
-#         "CONFIG": {
-#             "hosts": [("redis", 6379)],
-#         },
-#     },
-# }
-
-'''Dev'''
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
-    }
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("redis", 6379)],
+        },
+    },
 }
+
+# '''Dev'''
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels.layers.InMemoryChannelLayer"
+#     }
+# }
 
 
 # Database
@@ -124,9 +139,9 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': {
         'ENGINE': os.getenv('ENGINE'),
-        'NAME': os.getenv('NAME'),
-        'USER': os.getenv('USER'),
-        'PASSWORD': os.getenv('PASSWORD'),
+        'NAME': os.getenv('POSTGRES_DB'),
+        'USER': os.getenv('POSTGRES_USER'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
         'HOST': os.getenv('HOST'),
         'PORT': os.getenv('PORT')
     }
@@ -171,15 +186,8 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = os.path.join(BASE_DIR, 'static',),
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-CORS_ALLOWED_ORIGINS = [
-    'http://127.0.0.1:8000',
-    'http://localhost:8000',
-    'http://localhost:8080',
-]
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'index'
@@ -190,7 +198,7 @@ INTERNAL_IPS = [
 ]
 
 # Redis
-REDIS_HOST = '127.0.0.1'
+REDIS_HOST = 'redis'
 REDIS_PORT = '6379'
 
 # SMTP

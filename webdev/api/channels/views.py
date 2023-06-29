@@ -15,7 +15,7 @@ from .serializers import ChannelRetrieveSerializer, ChannelUpdateSerializer
 
 
 class ChannelListAPI(ListCreateMixin, generics.ListAPIView):
-    @method_decorator(cache_page(2))
+    @method_decorator(cache_page(60))
     def get(self, request, *args, **kwargs):
         tags_qs = ChannelFilter(request.GET, queryset=Channel.online.select_related('author')).qs
 
