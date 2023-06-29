@@ -23,7 +23,6 @@ def index(request, tag_slug=None):
     channels_list = (
         Channel.online.select_related('author')
         .prefetch_related('current_users', 'tags')
-        .order_by('-online')
     )
     form = SearchForm()
     tags_form = ChannelFilter(request.GET, queryset=channels_list)
@@ -39,7 +38,9 @@ def index(request, tag_slug=None):
             pagination_symbol = pagination_symbol.split('page')[0]
 
         if form.is_valid():
-            channels_list = get_filtered_channels(form, tags_form, channels_list)
+            channels_list = get_filtered_channels(
+                form.cleaned_data.get('query'), tags_form.qs, channels_list
+            )
             if not channels_list:
                 empty = True
 

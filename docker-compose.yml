@@ -1,0 +1,80 @@
+services:
+  web:
+    build: .
+    command: >
+      sh -c "./wait-for-it.sh db:5432 && cd webdev && gunicorn webdev.wsgi:application --bind 0.0.0.0:8000"
+#    command: ["uwsgi", "--ini", "/webdev/uwsgi/uwsgi.ini"]
+    restart: always
+    volumes:
+      - static_volume:/webdev/webdev/staticfiles
+      - media_volume:/webdev/webdev/media
+    ports:
+      - '8000:8000'
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:14.5-alpine
+    restart: always
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    env_file:
+      - .env_db
+
+  redis:
+    image: redis:7.0.4
+    restart: always
+    volumes:
+      - ./data/redis:/data
+
+  worker:
+    restart: always
+    build: .
+    command: >
+      sh -c "cd webdev && celery -A webdev worker -l info"
+    depends_on:
+      - redis
+      - web
+
+  beat:
+    restart: always
+    build: .
+    command: >
+      sh -c "cd webdev && celery -A webdev beat -l info"
+    depends_on:
+      - redis
+      - web
+      - worker
+
+
+  daphne:
+    build: .
+#    command: >
+#      sh -c "cd webdev && daphne -u /webdev/daphne.sock webdev.asgi:application"
+    command: >
+      sh -c "cd webdev && daphne -b 0.0.0.0 -p 8001 webdev.asgi:application"
+    restart: always
+    volumes:
+      - .:/webdev
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+
+  nginx:
+    build: ./nginx
+    restart: always
+    volumes:
+      - static_volume:/webdev/staticfiles
+      - media_volume:/webdev/media
+    ports:
+      - "80:80"
+
+
+volumes:
+  static_volume:
+  media_volume:

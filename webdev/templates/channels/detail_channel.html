@@ -13,7 +13,7 @@
   <div>{{ channels.date|date:"d E Y" }}</div>
 
   <div>
-      {% with users_count=channel.current_users.count %}
+      {% with users_count=channels.current_users.count %}
             Online: {{ users_count }} user{{ users_count|pluralize }}
       {% endwith %}
   </div>

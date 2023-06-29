@@ -1,7 +1,6 @@
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
-from rest_framework.response import Response
 
 from api.users.services import email_confirm
 from users.models import Account, Subscribe

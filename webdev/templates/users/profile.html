@@ -13,7 +13,9 @@
     <img src="{% thumbnail user.account.avatar 180x180 %}" class="user-detail">
   </div>
   {% endif %}
-  {{ user.account.about }}<br>
+  {% if user.account.about %}
+    {{ user.account.about }}<br>
+  {% endif %}
   {% if user.account.rating %}
     Rating: {{ user.account.rating }}<br>
   {% else %}

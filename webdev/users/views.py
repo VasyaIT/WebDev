@@ -16,7 +16,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils.http import urlsafe_base64_decode
 
 from channels_app.models import Channel
-from .models import Account, Subscribe, Friend
+from .models import Account
 from .forms import SignUpForm, CustomPasswordChangeForm, CustomPasswordResetForm, \
     CustomSetPasswordForm, AccountEditForm
 from .utils import user_action, email_confirm

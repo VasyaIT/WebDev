@@ -7,6 +7,8 @@ pyrightconfig.json
 media/
 logs/
 migrations/
+.dockerignore
+data/
 
 # C extensions
 *.so
@@ -107,7 +109,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+*.env*
 .venv
 env/
 venv/

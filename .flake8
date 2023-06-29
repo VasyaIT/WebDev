@@ -12,6 +12,7 @@ exclude =
     env,
     */migrations/*,
     venv/,
+    asgi.py,
 max-complexity = 10
 max-line-length = 100
-ignore = F401, E126, W503
+ignore = E126, W503

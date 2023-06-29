@@ -11,7 +11,7 @@ User = get_user_model()
 
 class OnlineManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().annotate(online=Count('current_users'))
+        return super().get_queryset().annotate(online=Count('current_users')).order_by('-online')
 
 
 class Tag(models.Model):

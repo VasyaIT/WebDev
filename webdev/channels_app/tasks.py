@@ -8,7 +8,7 @@ from webdev.logger_config import logger
 def delete_messages():
     for channel in Channel.objects.all():
         mess = channel.messages
-        if len(mess) > 10:
-            messages = mess.order_by('-id')[:10]
+        if mess.count() > 1000:
+            messages = mess.order_by('-id')[:1000]
             channel.messages.exclude(id__in=[message.id for message in messages]).delete()
             logger.success('Task delete message complete')

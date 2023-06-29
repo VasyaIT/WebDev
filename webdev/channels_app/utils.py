@@ -23,14 +23,13 @@ def generate_slug(channel_name) -> str:
     return channel_slug
 
 
-def get_filtered_channels(form, tags_form, channels_list) -> QuerySet:
+def get_filtered_channels(query: str, tags_qs: QuerySet, channels_list: QuerySet) -> QuerySet:
     """Getting a filtered channel request"""
-    query = form.cleaned_data['query']
     result = (Q
               (name__icontains=query) | Q(tags__name__icontains=query) | Q
-              (author__username__icontains=query) | Q(description__icontains=query)
-              )
-    tags_queryset = tags_form.qs
+              (author__username__icontains=query) | Q(description__icontains=query))
+
+    tags_queryset = tags_qs
     channels_queryset = channels_list.filter(result).distinct()
     channels_list = tags_queryset.filter(result).distinct()
     if len(channels_list) == 0:
